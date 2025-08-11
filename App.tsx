@@ -10,7 +10,7 @@ import { PerformanceMeasureView } from '@shopify/react-native-performance';
 // Import contexts
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { StreakProvider } from './src/context/StreakContext';
-import { PanicModalProvider } from './src/context/PanicModalContext';
+import { PanicModalProvider, usePanicModal } from './src/context/PanicModalContext';
 import { TipsModalProvider } from './src/context/TipsModalContext';
 
 // Import screens
@@ -31,6 +31,7 @@ import { User, Book, House, Trophy, ChartBar } from 'phosphor-react-native';
 
 // Import constants
 import { COLORS } from './src/constants/theme';
+import hapticService, { HapticType, HapticIntensity } from './src/services/hapticService';
 
 const Tab = createBottomTabNavigator();
 
@@ -90,6 +91,7 @@ function LibraryStack() {
 // Main app content with theme awareness
 function AppContent() {
   const { colors } = useTheme();
+  const { isPanicModalVisible } = usePanicModal();
   
   return (
     <NavigationContainer>
@@ -103,9 +105,20 @@ function AppContent() {
             height: 80,
             paddingBottom: 10,
             paddingTop: 10,
+            display: isPanicModalVisible ? 'none' : 'flex', // Hide tab bar when panic modal is visible
           },
-          tabBarActiveTintColor: colors.primaryAccent,
+          tabBarActiveTintColor: colors.premiumWhite,
           tabBarInactiveTintColor: colors.mutedText,
+        }}
+        screenListeners={{
+          tabPress: async (e) => {
+            // Premium haptic feedback for tab navigation
+            try {
+              await hapticService.trigger(HapticType.LIGHT_TAP, HapticIntensity.SUBTLE);
+            } catch (error) {
+              console.warn('Haptic feedback error:', error);
+            }
+          },
         }}
       >
         <Tab.Screen 

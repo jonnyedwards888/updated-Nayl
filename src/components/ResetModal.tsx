@@ -8,15 +8,15 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
 import AnimationService, { AnimationType } from '../services/animationService';
-import { COLORS, SPACING } from '../constants/theme';
-import { body, h2 } from '../constants/typography';
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface ResetModalProps {
   visible: boolean;
@@ -25,12 +25,33 @@ interface ResetModalProps {
 }
 
 const triggerOptions = [
-  { id: 'anxiety', label: 'Anxiety', emoji: '😰' },
-  { id: 'stress', label: 'Stress', emoji: '😤' },
-  { id: 'boredom', label: 'Boredom', emoji: '😐' },
-  { id: 'nervousness', label: 'Nervousness', emoji: '😬' },
-  { id: 'habit', label: 'Habit', emoji: '🤔' },
-  { id: 'other', label: 'Other', emoji: '❓' },
+  { id: 'anxiety', label: 'Anxiety', emoji: '😰', description: 'Feeling overwhelmed and nervous' },
+  { id: 'stress', label: 'Stress', emoji: '😤', description: 'Work or life pressure' },
+  { id: 'boredom', label: 'Boredom', emoji: '😐', description: 'Nothing else to do' },
+  { id: 'nervousness', label: 'Nervousness', emoji: '😬', description: 'Social situations or anticipation' },
+  { id: 'habit', label: 'Habit', emoji: '🤔', description: 'Just doing it unconsciously' },
+  { id: 'other', label: 'Other', emoji: '❓', description: 'Different reason' },
+];
+
+const nailBitingCycle = [
+  {
+    title: 'The Temptation',
+    description: 'You feel the urge to bite your nails, thinking it will help you feel better or relieve stress.',
+    icon: 'hand-left',
+    color: '#FF6B6B',
+  },
+  {
+    title: 'The Moment of Weakness',
+    description: 'You give in and bite your nails, experiencing temporary relief or satisfaction.',
+    icon: 'close-circle',
+    color: '#FFA500',
+  },
+  {
+    title: 'The Aftermath',
+    description: 'The relief fades, leaving you with damaged nails, potential infections, and feelings of guilt and disappointment.',
+    icon: 'sad',
+    color: '#FF4757',
+  },
 ];
 
 const ResetModal: React.FC<ResetModalProps> = ({ 
@@ -41,8 +62,55 @@ const ResetModal: React.FC<ResetModalProps> = ({
   const [selectedTrigger, setSelectedTrigger] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   
+  // Star positions for ambient animation (same as main page)
+  const [starPositions, setStarPositions] = useState(() => 
+    Array.from({ length: 50 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      opacity: Math.random() * 0.5 + 0.3,
+      speed: Math.random() * 0.15 + 0.03, // Same slow speed as main page
+      directionX: (Math.random() - 0.5) * 1.5,
+      directionY: (Math.random() - 0.5) * 1.5,
+      size: Math.random() * 2.2 + 0.5,
+    }))
+  );
+  
   // Animation values for modal entrance
-  const modalScale = useRef(new Animated.Value(0)).current;
+  const modalOpacity = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(50)).current;
+  
+  // Ambient starfield animation (same as main page)
+  useEffect(() => {
+    if (visible) {
+      const updateStarPositions = () => {
+        setStarPositions(prevPositions => 
+          prevPositions.map(star => {
+            const newX = star.x + (star.directionX * star.speed);
+            const newY = star.y + (star.directionY * star.speed);
+            
+            // Wrap stars around screen boundaries
+            let wrappedX = newX;
+            let wrappedY = newY;
+            
+            if (newX < -50) wrappedX = width + 50;
+            if (newX > width + 50) wrappedX = -50;
+            if (newY < -50) wrappedY = height + 50;
+            if (newY > height + 50) wrappedY = -50;
+            
+            return {
+              ...star,
+              x: wrappedX,
+              y: wrappedY,
+            };
+          })
+        );
+      };
+      
+      const starfieldInterval = setInterval(updateStarPositions, 50); // Same 50ms interval as main page
+      
+      return () => clearInterval(starfieldInterval);
+    }
+  }, [visible]);
   
   // Smooth modal entrance
   useEffect(() => {
@@ -51,17 +119,23 @@ const ResetModal: React.FC<ResetModalProps> = ({
       hapticService.trigger(HapticType.LIGHT_TAP, HapticIntensity.NORMAL);
       
       // Smooth entrance animation
-      Animated.timing(modalScale, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(modalOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(contentTranslateY, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      modalScale.setValue(0);
+      modalOpacity.setValue(0);
+      contentTranslateY.setValue(50);
     }
   }, [visible]);
-  
-
   
   const handleReset = () => {
     if (selectedTrigger) {
@@ -97,66 +171,128 @@ const ResetModal: React.FC<ResetModalProps> = ({
       animationType="none"
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
+      <SafeAreaView style={styles.container}>
         <Animated.View
           style={[
-            styles.modalContainer,
-            {
-              transform: [
-                { scale: modalScale },
-              ],
-            },
+            styles.overlay,
+            { opacity: modalOpacity }
           ]}
         >
           <LinearGradient
-            colors={['rgba(0, 0, 0, 0.95)', 'rgba(20, 0, 0, 0.98)']} // Darker, more serious gradient
-            style={styles.modalGradient}
+            colors={COLORS.backgroundGradient}
+            style={styles.backgroundGradient}
+          />
+          
+          {/* Subtle starfield effect */}
+          <View style={styles.starfield}>
+            {starPositions.map((star, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.star,
+                  {
+                    left: star.x,
+                    top: star.y,
+                    opacity: star.opacity,
+                    width: star.size,
+                    height: star.size,
+                  }
+                ]}
+              />
+            ))}
+          </View>
+          
+          <Animated.View
+            style={[
+              styles.content,
+              {
+                transform: [{ translateY: contentTranslateY }],
+              },
+            ]}
           >
-            <View style={styles.content}>
+            {/* Header with close button */}
+            <View style={styles.header}>
+              <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+                <Ionicons name="close" size={28} color={COLORS.primaryText} />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Main content */}
+            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
               {/* Warning icon */}
               <View style={styles.warningIcon}>
-                <Ionicons name="warning" size={32} color="#FF4444" />
+                <Ionicons name="warning" size={48} color={COLORS.destructiveAction} />
               </View>
               
-              <Text style={styles.title}>Are you sure you want to reset?</Text>
-              <Text style={styles.subtitle}>This will erase all your progress</Text>
+              {/* Emotional headline */}
+              <Text style={styles.headline}>You let yourself down, again.</Text>
               
-              <Text style={styles.triggerQuestion}>What triggered you to bite your nails?</Text>
+              {/* Motivational text */}
+              <Text style={styles.motivationalText}>
+                Relapsing can be tough and make you feel awful, but it's crucial not to be too hard on yourself. 
+                Understanding why you relapsed helps break the cycle.
+              </Text>
               
-              <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={handleDropdownPress}
-              >
-                <Text style={styles.dropdownButtonText}>
-                  {selectedTrigger 
-                    ? triggerOptions.find(option => option.id === selectedTrigger)?.label || 'Select an option'
-                    : 'Select an option'
-                  }
-                </Text>
-                <Ionicons 
-                  name={showDropdown ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={COLORS.primaryText} 
-                />
-              </TouchableOpacity>
+              {/* Nail Biting Cycle */}
+              <View style={styles.cycleContainer}>
+                <Text style={styles.cycleTitle}>The Nail Biting Cycle</Text>
+                
+                {nailBitingCycle.map((step, index) => (
+                  <View key={index} style={styles.cycleStep}>
+                    <View style={[styles.stepIcon, { backgroundColor: step.color }]}>
+                      <Ionicons name={step.icon as any} size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.stepContent}>
+                      <Text style={styles.stepTitle}>{step.title}</Text>
+                      <Text style={styles.stepDescription}>{step.description}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+              
+              {/* Trigger selection */}
+              <View style={styles.triggerSection}>
+                <Text style={styles.triggerQuestion}>What triggered you to bite your nails?</Text>
+                
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={handleDropdownPress}
+                >
+                  <Text style={styles.dropdownButtonText}>
+                    {selectedTrigger 
+                      ? triggerOptions.find(option => option.id === selectedTrigger)?.label || 'Select an option'
+                      : 'Select an option'
+                    }
+                  </Text>
+                  <Ionicons 
+                    name={showDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={COLORS.primaryText} 
+                  />
+                </TouchableOpacity>
 
-              {showDropdown && (
-                <View style={styles.dropdown}>
-                  <ScrollView style={styles.dropdownScroll}>
-                    {triggerOptions.map((option) => (
-                      <TouchableOpacity
-                        key={option.id}
-                        style={styles.dropdownOption}
-                        onPress={() => handleOptionSelect(option.id)}
-                      >
-                        <Text style={styles.optionEmoji}>{option.emoji}</Text>
-                        <Text style={styles.optionLabel}>{option.label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-
+                {showDropdown && (
+                  <View style={styles.dropdown}>
+                    <ScrollView style={styles.dropdownScroll}>
+                      {triggerOptions.map((option) => (
+                        <TouchableOpacity
+                          key={option.id}
+                          style={styles.dropdownOption}
+                          onPress={() => handleOptionSelect(option.id)}
+                        >
+                          <Text style={styles.optionEmoji}>{option.emoji}</Text>
+                          <View style={styles.optionContent}>
+                            <Text style={styles.optionLabel}>{option.label}</Text>
+                            <Text style={styles.optionDescription}>{option.description}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+              
+              {/* Reset button */}
               <TouchableOpacity
                 style={[
                   styles.resetButton,
@@ -167,14 +303,14 @@ const ResetModal: React.FC<ResetModalProps> = ({
               >
                 <LinearGradient
                   colors={selectedTrigger 
-                    ? [COLORS.destructiveAction, COLORS.destructiveAction + 'CC']
-                    : [COLORS.mutedText, COLORS.mutedText + 'CC']
+                    ? [COLORS.destructiveAction, '#FF6B6B']
+                    : [COLORS.mutedText, COLORS.mutedText]
                   }
                   style={styles.resetButtonGradient}
                 >
                   <Ionicons 
                     name="refresh" 
-                    size={20} 
+                    size={24} 
                     color={COLORS.primaryText} 
                   />
                   <Text style={styles.resetButtonText}>
@@ -182,77 +318,136 @@ const ResetModal: React.FC<ResetModalProps> = ({
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.closeButton} 
-                onPress={handleClose}
-              >
-                <Text style={styles.closeButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
+              
+              {/* Encouragement text */}
+              <Text style={styles.encouragementText}>
+                Remember: Every setback is a setup for a comeback. You've got this! 💪
+              </Text>
+            </ScrollView>
+          </Animated.View>
         </Animated.View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.primaryBackground,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContainer: {
-    width: width - SPACING.lg * 2,
-    borderRadius: 20,
-    padding: SPACING.lg,
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.1,
   },
-  modalGradient: {
-    width: '100%',
-    borderRadius: 20,
-    padding: SPACING.lg,
-    alignItems: 'center',
+  starfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5,
   },
   content: {
-    alignItems: 'center',
     width: '100%',
+    height: '100%',
+    borderRadius: BORDER_RADIUS.lg,
+    overflow: 'hidden',
+    ...SHADOWS.card,
+  },
+  header: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xxl, // Much larger padding to move button down significantly
+    paddingBottom: SPACING.sm,
+    alignItems: 'flex-end',
+  },
+  closeButton: {
+    padding: SPACING.sm,
+  },
+  scrollContent: {
+    padding: SPACING.lg,
+    flexGrow: 1,
   },
   warningIcon: {
-    marginBottom: SPACING.md,
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
   },
-  title: {
-    ...h2,
+  headline: {
+    ...TYPOGRAPHY.headingLarge,
     color: COLORS.primaryText,
     textAlign: 'center',
     marginBottom: SPACING.sm,
   },
-  subtitle: {
-    ...body,
+  motivationalText: {
+    ...TYPOGRAPHY.bodyMedium,
     color: COLORS.secondaryText,
     textAlign: 'center',
     marginBottom: SPACING.lg,
   },
-  countdownContainer: {
+  cycleContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
     marginBottom: SPACING.lg,
-    alignItems: 'center',
   },
-  countdownLabel: {
-    ...body,
-    color: COLORS.primaryText,
-    marginBottom: SPACING.sm,
-  },
-  countdownValue: {
-    ...h2,
-    color: COLORS.destructiveAction,
-    fontWeight: 'bold',
-  },
-  triggerQuestion: {
-    ...body,
+  cycleTitle: {
+    ...TYPOGRAPHY.headingSmall,
     color: COLORS.primaryText,
     textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+  cycleStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: SPACING.md,
+  },
+  stepIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepTitle: {
+    ...TYPOGRAPHY.bodyMedium,
+    color: COLORS.primaryText,
+    fontWeight: 'bold',
+    marginBottom: SPACING.xs,
+  },
+  stepDescription: {
+    ...TYPOGRAPHY.bodyMedium,
+    color: COLORS.secondaryText,
+  },
+  triggerSection: {
+    marginBottom: SPACING.lg,
+  },
+  triggerQuestion: {
+    ...TYPOGRAPHY.bodyMedium,
+    color: COLORS.primaryText,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
   },
   dropdownButton: {
     flexDirection: 'row',
@@ -261,20 +456,22 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: SPACING.lg,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   dropdownButtonText: {
-    ...body,
+    ...TYPOGRAPHY.bodyMedium,
     color: COLORS.primaryText,
+    flex: 1,
+    marginRight: SPACING.sm,
   },
   dropdown: {
     width: '100%',
     maxHeight: 200,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     marginBottom: SPACING.lg,
@@ -286,15 +483,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS.sm,
   },
   optionEmoji: {
-    fontSize: 20,
+    fontSize: 24,
     marginRight: SPACING.md,
   },
+  optionContent: {
+    flex: 1,
+  },
   optionLabel: {
-    ...body,
+    ...TYPOGRAPHY.bodyMedium,
     color: COLORS.primaryText,
+    fontWeight: 'bold',
+    marginBottom: SPACING.xs,
+  },
+  optionDescription: {
+    ...TYPOGRAPHY.bodyMedium,
+    color: COLORS.secondaryText,
   },
   resetButton: {
     width: '100%',
@@ -303,28 +509,24 @@ const styles = StyleSheet.create({
   resetButtonDisabled: {
     opacity: 0.5,
   },
-  resetButtonProcessing: {
-    opacity: 0.7,
-  },
   resetButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
   },
   resetButtonText: {
-    ...body,
+    ...TYPOGRAPHY.buttonText,
     color: COLORS.primaryText,
     fontWeight: '600',
     marginLeft: SPACING.sm,
   },
-  closeButton: {
-    padding: SPACING.md,
-  },
-  closeButtonText: {
-    ...body,
+  encouragementText: {
+    ...TYPOGRAPHY.bodyMedium,
     color: COLORS.secondaryText,
+    textAlign: 'center',
+    marginTop: SPACING.lg,
   },
 });
 

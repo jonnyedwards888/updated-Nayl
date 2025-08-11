@@ -11,6 +11,9 @@ export const COLORS = {
   secondaryAccent: '#0A4F6B',
   accentGradient: ['#C1FF72', '#A8E85C'],
   
+  // Premium UI Colors
+  premiumWhite: '#F8FAFC', // Subtle off-white for premium feel
+  
   // Enhanced Semantic Colors
   destructiveAction: '#FF4757',
   success: '#2ED573',

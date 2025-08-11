@@ -217,51 +217,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
 
         {/* Content Cards */}
         <View style={styles.contentCardsContainer}>
-          {/* Article Card */}
-          <TouchableOpacity style={[styles.contentCard, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
-            <View style={styles.contentCardHeader}>
-              <View style={[styles.contentCardIcon, { backgroundColor: colors.primaryAccent }]}>
-                <Ionicons name="document-text" size={24} color={colors.primaryBackground} />
-              </View>
-              <View style={styles.contentCardMeta}>
-                <Text style={[styles.contentCardTitle, { color: colors.primaryText }]}>The Science of Habit Formation</Text>
-                <Text style={[styles.contentCardSubtitle, { color: colors.secondaryText }]}>Understanding how habits work and how to break them</Text>
-              </View>
-            </View>
-            <Text style={[styles.contentCardDescription, { color: colors.secondaryText }]}>
-              Learn about the neurological basis of habits and discover evidence-based strategies for breaking the nail-biting cycle.
-            </Text>
-            <View style={styles.contentCardFooter}>
-              <Text style={[styles.contentCardReadTime, { color: colors.mutedText }]}>5 min read</Text>
-              <TouchableOpacity style={styles.contentCardButton}>
-                <Text style={[styles.contentCardButtonText, { color: colors.primaryAccent }]}>Read More</Text>
-                <Ionicons name="arrow-forward" size={16} color={colors.primaryAccent} />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-
-          {/* Video Card */}
-          <TouchableOpacity style={[styles.contentCard, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
-            <View style={styles.contentCardHeader}>
-              <View style={[styles.contentCardIcon, { backgroundColor: colors.primaryAccent }]}>
-                <Ionicons name="play-circle" size={24} color={colors.primaryBackground} />
-              </View>
-              <View style={styles.contentCardMeta}>
-                <Text style={[styles.contentCardTitle, { color: colors.primaryText }]}>Mindfulness Techniques</Text>
-                <Text style={[styles.contentCardSubtitle, { color: colors.secondaryText }]}>Simple exercises to reduce stress and anxiety</Text>
-              </View>
-            </View>
-            <Text style={[styles.contentCardDescription, { color: colors.secondaryText }]}>
-              Discover practical mindfulness techniques that can help you manage stress and reduce the urge to bite your nails.
-            </Text>
-            <View style={styles.contentCardFooter}>
-              <Text style={[styles.contentCardReadTime, { color: colors.mutedText }]}>12 min video</Text>
-              <TouchableOpacity style={styles.contentCardButton}>
-                <Text style={[styles.contentCardButtonText, { color: colors.primaryAccent }]}>Watch Now</Text>
-                <Ionicons name="arrow-forward" size={16} color={colors.primaryAccent} />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          {/* Content cards removed - The Science of Habit Formation and Mindfulness Techniques */}
         </View>
 
         {/* Relaxation Noises Section */}

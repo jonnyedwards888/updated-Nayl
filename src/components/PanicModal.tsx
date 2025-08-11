@@ -41,187 +41,76 @@ const SPACING = {
   xxxl: 64,
 };
 
-// Typewriter component for dramatic effect with enhanced haptics
+// Ultra-fast, simple typewriter component with continuous vibration
 const TypewriterText: React.FC<{ text: string; speed?: number; onComplete?: () => void }> = ({ 
   text, 
-  speed = 80, // component default; actual speed is controlled where used below
+  speed = 0.06, // Slowed down by ~25% from 0.05 to 0.07
   onComplete 
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const [isSettled, setIsSettled] = useState(false);
-  const isMountedRef = useRef(true);
-  const hapticTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const vibrationRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Process text once and memoize
+  // Process text once to convert \n to actual line breaks
   const processedText = useMemo(() => {
     return text.replace(/\\n/g, '\n');
   }, [text]);
 
-  // Find key positions for enhanced haptics
-  const keyPositions = useMemo(() => {
-    const positions = {
-      stopEnd: processedText.indexOf('STOP') + 4,
-      promiseStart: processedText.indexOf('PROMISE'),
-      yourselfEnd: processedText.length,
-    };
-    return positions;
-  }, [processedText]);
-
-  // Enhanced haptic feedback function with stronger vibration effects
-  const triggerHaptic = useCallback((intensity: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'burst') => {
-    // Clear any pending haptic to prevent overlap
-    if (hapticTimeoutRef.current) {
-      clearTimeout(hapticTimeoutRef.current);
-    }
-
-    // Use setTimeout to ensure haptics don't overlap and cause performance issues
-    hapticTimeoutRef.current = setTimeout(() => {
-      try {
-        switch (intensity) {
-          case 'light':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            break;
-          case 'medium':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            break;
-          case 'heavy':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            break;
-          case 'success':
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            break;
-          case 'warning':
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            break;
-          case 'error':
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            break;
-          case 'burst':
-            // Create a burst of multiple haptics for maximum impact
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            setTimeout(() => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            }, 30);
-            setTimeout(() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            }, 60);
-            setTimeout(() => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            }, 90);
-            setTimeout(() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            }, 120);
-            break;
-        }
-      } catch (error) {
-        // Silently handle haptic errors to prevent app crashes
-        console.log('Haptic feedback error:', error);
-      }
-    }, 10); // Reduced delay for more responsive haptics
+  // Start continuous vibration effect with stronger haptics
+  const startVibration = useCallback(() => {
+    vibrationRef.current = setInterval(() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); // Changed from Light to Heavy for stronger punch
+    }, 50); // Vibrate every 50ms for continuous effect
   }, []);
 
-  // Memoize the completion callback
-  const handleComplete = useCallback(() => {
-    if (!isComplete && isMountedRef.current) {
-      setIsComplete(true);
-      
-      // Dramatic completion sequence with multiple strong haptics
-      triggerHaptic('burst');
-      
-      // Additional burst after a short delay for maximum impact
-      setTimeout(() => {
-        triggerHaptic('burst');
-      }, 300);
-      
-      // Final success haptic for completion
-      setTimeout(() => {
-        triggerHaptic('success');
-      }, 600);
-      
-      // Start settle animation after completion
-      setTimeout(() => {
-        if (isMountedRef.current) {
-          setIsSettled(true);
+  // Stop vibration
+  const stopVibration = useCallback(() => {
+    if (vibrationRef.current) {
+      clearInterval(vibrationRef.current);
+      vibrationRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Reset state
+    setDisplayedText('');
+    setCurrentIndex(0);
+
+    // Start continuous vibration immediately
+    startVibration();
+
+    // Start the ultra-fast typewriter effect
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex(prev => {
+        const nextIndex = prev + 1;
+        if (nextIndex <= processedText.length) {
+          // Use processedText instead of raw text
+          const currentText = processedText.slice(0, nextIndex);
+          setDisplayedText(currentText);
+          return nextIndex;
+        } else {
+          // Complete - stop vibration and typewriter
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          stopVibration();
           onComplete?.();
+          return prev;
         }
-      }, 100);
-    }
-  }, [isComplete, onComplete, triggerHaptic]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      if (hapticTimeoutRef.current) {
-        clearTimeout(hapticTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Reset state when text changes
-  useEffect(() => {
-    if (isMountedRef.current) {
-      setDisplayedText('');
-      setCurrentIndex(0);
-      setIsComplete(false);
-      setIsSettled(false);
-    }
-  }, [processedText]);
-
-  // Enhanced typewriter effect with progressive haptics
-  useEffect(() => {
-    if (isComplete || currentIndex >= processedText.length) {
-      handleComplete();
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      if (!isMountedRef.current) return;
-      
-      const nextChar = processedText[currentIndex];
-      setDisplayedText(prev => prev + nextChar);
-      setCurrentIndex(prev => prev + 1);
-      
-      // Progressive haptic feedback based on character position with stronger effects
-      const newIndex = currentIndex + 1;
-      
-      // Medium haptic for key characters (stronger than light)
-      if (newIndex % 3 === 0 && newIndex < keyPositions.stopEnd) {
-        triggerHaptic('medium');
-      }
-      
-      // Burst haptic for "STOP" completion - maximum impact
-      if (newIndex === keyPositions.stopEnd) {
-        triggerHaptic('burst');
-      }
-      
-      // Error haptic when "PROMISE" starts - very strong
-      if (newIndex === keyPositions.promiseStart) {
-        triggerHaptic('error');
-        // Additional heavy haptic for emphasis
-        setTimeout(() => triggerHaptic('heavy'), 150);
-      }
-      
-      // Burst haptic for the final period - dramatic ending
-      if (newIndex === keyPositions.yourselfEnd) {
-        triggerHaptic('burst');
-      }
-      
+      });
     }, speed);
 
-    return () => clearTimeout(timer);
-  }, [currentIndex, processedText, speed, isComplete, handleComplete, keyPositions, triggerHaptic]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      stopVibration();
+    };
+  }, [processedText, speed, onComplete, startVibration, stopVibration]);
 
   return (
-    <Text style={[
-      styles.warningText,
-      {
-        opacity: isSettled ? 1 : 0.95,
-        transform: [{ scale: isSettled ? 1 : 0.98 }],
-      }
-    ]}>
+    <Text style={styles.warningText}>
       {displayedText}
     </Text>
   );
@@ -334,7 +223,7 @@ const PanicModal: React.FC = () => {
             <TypewriterText 
               key="typewriter-text"
               text="STOP\nYOU MADE A\nPROMISE TO\nYOURSELF."
-              speed={24}
+              speed={0.055}
               onComplete={handleTypewriterComplete}
             />
           ) : (
@@ -447,6 +336,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.xxl, // Add top padding for the close button
+    paddingBottom: SPACING.lg, // Standard bottom padding
   },
   closeButton: {
     position: 'absolute',

@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { TYPOGRAPHY } from '../constants/theme';
+import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -65,7 +66,7 @@ interface AchievementBadgeProps {
   isUnlocked: boolean;
 }
 
-const AchievementBadge: React.FC<AchievementBadgeProps & { index: number; showUnlockAnimation: boolean }> = ({
+const AchievementBadge: React.FC<AchievementBadgeProps & { index: number }> = ({
   title,
   description,
   progress,
@@ -75,7 +76,6 @@ const AchievementBadge: React.FC<AchievementBadgeProps & { index: number; showUn
   iconSource,
   isUnlocked,
   index,
-  showUnlockAnimation,
 }) => {
   const themeResult = useTheme();
   const colors = themeResult?.colors;
@@ -107,16 +107,19 @@ const AchievementBadge: React.FC<AchievementBadgeProps & { index: number; showUn
           {isUnlocked ? (
             <>
               {icon === 'custom' && iconSource ? (
-                <Image source={iconSource} style={styles.customIcon} />
+                <Image 
+                  source={iconSource} 
+                  style={[
+                    // Use larger icon style for small icons to match visual size
+                    (title === 'Sprout' || title === 'The Oak') ? styles.customIconLarge : styles.customIcon
+                  ]} 
+                />
               ) : (
                 <View style={styles.customIcon}>
                   <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={36} color="#FFFFFF" />
                 </View>
               )}
-              {/* Unlock animation overlay */}
-              {showUnlockAnimation && (
-                <View style={styles.unlockAnimation} />
-              )}
+
             </>
           ) : (
             <View style={styles.lockIconContainer}>
@@ -220,31 +223,35 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   progressBar: {
-    height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 4,
     overflow: 'hidden',
     marginBottom: SPACING.xs,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 4,
     shadowColor: COLORS.primaryAccent,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 4,
   },
   progressText: {
     ...TYPOGRAPHY.caption,
     color: themeColors.mutedText,
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '500',
+    opacity: 0.8,
   },
   content: {
     flex: 1,
@@ -296,6 +303,20 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     resizeMode: 'cover',
     backgroundColor: 'transparent',
   },
+  // Larger icon style for small icons to match visual size of others
+  customIconLarge: {
+    width: 84, // Slightly larger for small icons to better match others
+    height: 84,
+    borderRadius: 44,
+    resizeMode: 'cover',
+    backgroundColor: 'transparent',
+    // Center the larger icon within the 72x72 container
+    position: 'absolute',
+    top: -8, // Offset to center (88-72)/2 = 8
+    left: -8,
+  },
+  // Larger container for small icons to match visual size of others
+
   lockIconContainer: {
     width: 72,
     height: 72,
@@ -313,47 +334,34 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     elevation: 2,
   },
 
-  unlockAnimation: {
-    position: 'absolute',
-    top: -10,
-    left: -10,
-    right: -10,
-    bottom: -10,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: COLORS.primaryAccent,
-    opacity: 0.8,
-    shadowColor: COLORS.primaryAccent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+
   badgeTitle: {
     ...TYPOGRAPHY.bodySmall,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: SPACING.xs,
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.secondaryText,
-    opacity: 0.7,
+    opacity: 0.8,
   },
   badgeTitleUnlocked: {
     color: themeColors.primaryText,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 14,
+    opacity: 1,
   },
   badgeProgress: {
     ...TYPOGRAPHY.caption,
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.mutedText,
-    opacity: 0.6,
+    opacity: 0.7,
   },
   badgeProgressUnlocked: {
     color: themeColors.primaryText,
     fontWeight: '600',
     fontSize: 12,
+    opacity: 0.9,
   },
   bottomSpacing: {
     height: 100,
@@ -364,7 +372,7 @@ const AchievementsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [unlockedAchievements, setUnlockedAchievements] = useState(new Set([0, 1]));
-  const [showUnlockAnimation, setShowUnlockAnimation] = useState<number | null>(null);
+
   
   // Star positions for randomized animation
   const [starPositions, setStarPositions] = useState(() => 
@@ -435,14 +443,36 @@ const AchievementsScreen: React.FC = () => {
     );
   }
 
-  const unlockAchievement = (index: number) => {
+  const unlockAchievement = async (index: number) => {
     if (!unlockedAchievements.has(index)) {
       setUnlockedAchievements(prev => new Set([...prev, index]));
-      setShowUnlockAnimation(index);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       
-      // Hide animation after 2 seconds
-      setTimeout(() => setShowUnlockAnimation(null), 2000);
+      // Enhanced haptic feedback sequence for achievement unlock
+      try {
+        // Primary achievement unlock haptic
+        await hapticService.trigger(HapticType.ACHIEVEMENT, HapticIntensity.PROMINENT);
+        
+        // Secondary success haptic after a short delay
+        setTimeout(async () => {
+          await hapticService.trigger(HapticType.SUCCESS, HapticIntensity.NORMAL);
+        }, 200);
+        
+        // Final subtle confirmation haptic
+        setTimeout(async () => {
+          await hapticService.trigger(HapticType.SELECTION, HapticIntensity.SUBTLE);
+        }, 400);
+        
+      } catch (error) {
+        console.warn('Haptic feedback error:', error);
+        // Fallback to basic haptics with multiple patterns
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }, 150);
+        setTimeout(() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }, 300);
+      }
     }
   };
 
@@ -587,6 +617,8 @@ const AchievementsScreen: React.FC = () => {
             onPress={() => {
               const nextLockedIndex = achievements.findIndex((_, i) => !unlockedAchievements.has(i));
               if (nextLockedIndex !== -1) {
+                // Enhanced haptic feedback for button press
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 unlockAchievement(nextLockedIndex);
               } else {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -613,7 +645,7 @@ const AchievementsScreen: React.FC = () => {
               key={index}
               {...achievement}
               index={index}
-              showUnlockAnimation={showUnlockAnimation === index}
+              
             />
           ))}
         </View>

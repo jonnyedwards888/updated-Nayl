@@ -30,6 +30,7 @@ export interface ThemeColors {
   glassBorder: string;
   glassBorderLight: string;
   glassBorderPremium: string;
+  premiumWhite: string;
 }
 
 export const THEMES: Record<ThemeType, ThemeColors> = {
@@ -51,6 +52,7 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorder: 'rgba(255, 255, 255, 0.15)',
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+    premiumWhite: '#F8FAFC',
   },
   ocean: {
     // Ocean blue theme (previous)
@@ -70,6 +72,7 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorder: 'rgba(255, 255, 255, 0.15)',
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+    premiumWhite: '#F8FAFC',
   },
   twilight: {
     backgroundGradient: ['rgb(48, 12, 87)', 'rgb(63, 11, 54)', 'rgb(80, 19, 118)'],
@@ -88,6 +91,7 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorder: 'rgba(255, 255, 255, 0.15)',
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+    premiumWhite: '#F8FAFC',
   },
 };
 
@@ -122,6 +126,7 @@ const FALLBACK_THEME: ThemeContextType = {
     glassBorder: 'rgba(255, 255, 255, 0.15)',
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+    premiumWhite: '#F8FAFC',
   },
   setTheme: () => {
     console.warn('⚠️ setTheme called on fallback theme');
@@ -375,6 +380,7 @@ const ThemeProviderContent: React.FC<{ children: React.ReactNode }> = ({ childre
       glassBorder: 'rgba(255, 255, 255, 0.15)',
       glassBorderLight: 'rgba(255, 255, 255, 0.1)',
       glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+      premiumWhite: '#F8FAFC',
     };
     
     const contextValue: ThemeContextType = {
@@ -422,6 +428,7 @@ const ThemeProviderContent: React.FC<{ children: React.ReactNode }> = ({ childre
       glassBorder: 'rgba(255, 255, 255, 0.15)',
       glassBorderLight: 'rgba(255, 255, 255, 0.1)',
       glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
+      premiumWhite: '#F8FAFC',
     } as ThemeColors;
   }
   

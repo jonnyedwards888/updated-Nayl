@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Animated } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -12,16 +12,18 @@ interface ProgressRingProps {
   backgroundColor?: string;
   isClaimable?: boolean;
   onClaim?: () => void;
+  useGradient?: boolean;
 }
 
 const ProgressRing: React.FC<ProgressRingProps> = ({
   progress,
   size = 280,
   strokeWidth = 8,
-  color = '#C1FF72',
-  backgroundColor = 'rgba(193, 255, 114, 0.2)',
+  color = '#F8FAFC',
+  backgroundColor = 'rgba(248, 250, 252, 0.1)',
   isClaimable = false,
   onClaim,
+  useGradient = true,
 }) => {
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -47,6 +49,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       pulseAnim.setValue(1);
     }
   }, [isClaimable, pulseAnim]);
+  
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDasharray = circumference;
@@ -57,7 +60,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       styles.container,
       isClaimable && {
         transform: [{ scale: pulseAnim }],
-        shadowColor: '#A3FF00',
+        shadowColor: '#F8FAFC',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.7,
         shadowRadius: 25,
@@ -65,6 +68,14 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       }
     ]}>
       <Svg width={size} height={size}>
+        <Defs>
+          <LinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#F8FAFC" />
+            <Stop offset="50%" stopColor="#E2E8F0" />
+            <Stop offset="100%" stopColor="#CBD5E1" />
+          </LinearGradient>
+        </Defs>
+        
         {/* Background circle */}
         <Circle
           cx={size / 2}
@@ -74,12 +85,13 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           strokeWidth={strokeWidth}
           fill="transparent"
         />
+        
         {/* Progress circle */}
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={color}
+          stroke={useGradient ? "url(#progressGradient)" : color}
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={strokeDasharray}

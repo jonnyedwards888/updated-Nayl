@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { typography, body, bodySmall, caption } from '../constants/typography';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import Svg, { Circle, Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
@@ -230,13 +230,13 @@ const AnalyticsScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home' as never)}>
-            <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
+            <Ionicons name="chevron-back" size={28} color={colors.primaryText} />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={[styles.screenTitle, { color: colors.primaryText }]}>Analytics</Text>
           </View>
           <TouchableOpacity style={styles.shareButton}>
-            <Ionicons name="share-outline" size={24} color={colors.primaryText} />
+            <Ionicons name="share-outline" size={28} color={colors.primaryText} />
           </TouchableOpacity>
         </View>
       </View>
@@ -246,7 +246,7 @@ const AnalyticsScreen: React.FC = () => {
         {/* Progress Section */}
         <View style={styles.progressSection}>
           <View style={styles.progressContainer}>
-            <ProgressRing progress={recoveryPercentage} size={340} strokeWidth={14} />
+            <ProgressRing progress={recoveryPercentage} size={360} strokeWidth={16} />
             <View style={styles.progressTextContainer}>
               <Text style={[styles.progressLabel, { color: colors.secondaryText }]}>RECOVERY</Text>
               <Text style={[styles.progressPercentage, { color: colors.primaryText }]}>{Math.round(recoveryPercentage)}%</Text>
@@ -255,32 +255,44 @@ const AnalyticsScreen: React.FC = () => {
             </View>
           </View>
           
-          <Text style={[styles.recoveryDate, { color: colors.secondaryText }]}>
-            Estimated recovery: {estimatedRecoveryDate.toLocaleDateString('en-US', { 
-              month: 'long', 
-              day: 'numeric', 
-              year: 'numeric' 
-            })}
-          </Text>
+          {/* Enhanced Recovery Date Display */}
+          <View style={styles.recoveryDateContainer}>
+            <Text style={[styles.recoveryDateLabel, { color: colors.secondaryText }]}>
+              You're on track to quit nail biting by:
+            </Text>
+            <View style={[styles.recoveryDateBox, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
+              <Text style={[styles.recoveryDateText, { color: colors.primaryText }]}>
+                {estimatedRecoveryDate.toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })}
+              </Text>
+            </View>
+          </View>
           
-          <Text style={[styles.motivationalText, { color: colors.secondaryText }]}>
-            Every day you resist the urge to bite your nails, you're building stronger willpower and healthier habits. Keep going!
-          </Text>
+          {/* Enhanced Motivational Text */}
+          <View style={[styles.motivationalContainer, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
+            <Text style={[styles.motivationalText, { color: colors.primaryText }]}>
+              The first few days are always the hardest, but you've already shown incredible strength. Hold on to your reasons for starting this journey.
+            </Text>
+          </View>
         </View>
 
         {/* Graph Section */}
         <View style={styles.graphSection}>
           <Text style={[styles.graphTitle, { color: colors.primaryText }]}>Your Progress Journey</Text>
           <View style={[styles.graphContainer, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
-            <Svg width={width} height={180} style={styles.svg}>
+            <Svg width={width} height={160} style={styles.svg}>
               <Defs>
                 <SvgLinearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <Stop offset="0%" stopColor="#A3E635" />
-                  <Stop offset="100%" stopColor="#14B8A6" />
+                  <Stop offset="0%" stopColor="#F8FAFC" />
+                  <Stop offset="50%" stopColor="#E2E8F0" />
+                  <Stop offset="100%" stopColor="#CBD5E1" />
                 </SvgLinearGradient>
                 <SvgLinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <Stop offset="0%" stopColor="rgba(163, 230, 53, 0.3)" />
-                  <Stop offset="100%" stopColor="rgba(20, 184, 166, 0.1)" />
+                  <Stop offset="0%" stopColor="rgba(248, 250, 252, 0.3)" />
+                  <Stop offset="100%" stopColor="rgba(203, 213, 225, 0.1)" />
                 </SvgLinearGradient>
               </Defs>
               
@@ -292,7 +304,7 @@ const AnalyticsScreen: React.FC = () => {
               <Path
                 d={generatePath()}
                 stroke="url(#lineGradient)"
-                strokeWidth={3}
+                strokeWidth={4}
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -368,8 +380,9 @@ const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: numb
     <Svg width={size} height={size}>
       <Defs>
         <SvgLinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <Stop offset="0%" stopColor="#A3E635" />
-          <Stop offset="100%" stopColor="#14B8A6" />
+          <Stop offset="0%" stopColor="#F8FAFC" />
+          <Stop offset="50%" stopColor="#E2E8F0" />
+          <Stop offset="100%" stopColor="#CBD5E1" />
         </SvgLinearGradient>
       </Defs>
       
@@ -377,7 +390,7 @@ const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: numb
         cx={size / 2}
         cy={size / 2}
         r={radius}
-        stroke="rgba(255, 255, 255, 0.1)"
+        stroke="rgba(255, 255, 255, 0.08)"
         strokeWidth={strokeWidth}
         fill="transparent"
       />
@@ -423,9 +436,9 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 24,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.lg,
   },
   headerTop: {
     flexDirection: 'row',
@@ -433,35 +446,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   titleContainer: {
     flex: 1,
     alignItems: 'center',
   },
   screenTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    ...TYPOGRAPHY.headingLarge,
     color: '#FFFFFF',
   },
   shareButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.lg,
   },
   progressSection: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: SPACING.lg,
   },
   progressContainer: {
-    width: 340,
-    height: 340,
+    width: 360,
+    height: 360,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginBottom: 40, // Increased spacing
+    marginBottom: SPACING.lg,
   },
   progressTextContainer: {
     position: 'absolute',
@@ -473,63 +485,90 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   progressLabel: {
-    fontSize: 12,
+    ...TYPOGRAPHY.caption,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  percentageGradient: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: SPACING.xs,
+    letterSpacing: 1.2,
   },
   progressPercentage: {
-    fontSize: 48,
-    fontWeight: '700',
+    ...TYPOGRAPHY.displayLarge,
     color: '#FFFFFF',
-    marginBottom: 4,
-    textShadowColor: 'rgba(193, 255, 114, 0.5)',
+    marginBottom: SPACING.xs,
+    textShadowColor: 'rgba(193, 255, 114, 0.6)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowRadius: 20,
   },
   progressSubtext: {
-    fontSize: 14,
+    ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
+    letterSpacing: 0.5,
   },
   progressTarget: {
-    fontSize: 11,
+    ...TYPOGRAPHY.caption,
     color: '#94A3B8',
+    opacity: 0.8,
   },
-  recoveryDate: {
-    fontSize: 16,
+  recoveryDateContainer: {
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  recoveryDateLabel: {
+    ...TYPOGRAPHY.bodyMedium,
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.sm,
     fontWeight: '500',
+    lineHeight: 24,
+  },
+  recoveryDateBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    ...SHADOWS.card,
+  },
+  recoveryDateText: {
+    ...TYPOGRAPHY.headingSmall,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  motivationalContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxWidth: width - 80,
+    ...SHADOWS.card,
   },
   motivationalText: {
-    fontSize: 16,
-    color: '#94A3B8',
+    ...TYPOGRAPHY.bodyMedium,
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: width - 80,
+    fontWeight: '500',
   },
   graphSection: {
-    marginBottom: 48,
+    marginBottom: SPACING.lg,
   },
   graphTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    ...TYPOGRAPHY.headingMedium,
     color: '#FFFFFF',
-    marginBottom: 24,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
   },
   graphContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    ...SHADOWS.card,
   },
   svg: {
     alignSelf: 'center',
@@ -537,52 +576,49 @@ const styles = StyleSheet.create({
   axisLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-    paddingHorizontal: 8,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
   },
   axisLabel: {
-    fontSize: 10,
+    ...TYPOGRAPHY.caption,
     color: '#94A3B8',
+    opacity: 0.8,
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    marginVertical: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    marginVertical: SPACING.lg,
   },
   benefitsSection: {
-    marginBottom: 32,
+    marginBottom: SPACING.lg,
   },
   benefitsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...TYPOGRAPHY.headingMedium,
     color: '#FFFFFF',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
   },
   benefitsCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.38)',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
-    shadowRadius: 40,
-    elevation: 10,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    ...SHADOWS.deep,
     overflow: 'hidden',
   },
   benefitsBlur: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.xl,
   },
   benefitsCardBody: {
-    paddingVertical: 6,
+    paddingVertical: SPACING.xs,
   },
   benefitRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 14,
+    paddingVertical: SPACING.sm,
   },
   benefitIcon: {
     width: 40,
@@ -590,46 +626,41 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
-  },
-  benefitIconLarge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 14,
+    marginRight: SPACING.md,
+    ...SHADOWS.button,
   },
   benefitTextCol: {
     flex: 1,
   },
   benefitTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...TYPOGRAPHY.bodyLarge,
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
+    fontWeight: '600',
   },
   benefitDescription: {
-    fontSize: 14,
+    ...TYPOGRAPHY.bodyMedium,
     color: '#94A3B8',
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
   },
   benefitProgressBg: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: BORDER_RADIUS.sm,
     overflow: 'hidden',
-    marginTop: 8,
+    marginTop: SPACING.xs,
   },
   benefitProgressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: BORDER_RADIUS.sm,
   },
   benefitDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   bottomSpacing: {
-    height: 32,
+    height: SPACING.lg,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -643,7 +674,7 @@ const styles = StyleSheet.create({
   benefitIconImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 22,
   },
 });
 
