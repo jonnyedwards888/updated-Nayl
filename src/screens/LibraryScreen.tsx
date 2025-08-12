@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { body, bodySmall, caption, buttonText } from '../constants/typography';
 import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,12 +30,20 @@ const SPACING = {
   xxxl: 64,
 };
 
+type LibraryStackParamList = {
+  LibraryMain: undefined;
+  Meditation: undefined;
+  Achievements: undefined;
+  RelaxationSound: { soundType: string };
+};
+
 interface LibraryScreenProps {
-  navigation: any;
+  navigation?: NavigationProp<LibraryStackParamList>;
 }
 
-const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
+const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation: propNavigation }) => {
   const { colors } = useThemeGuaranteed();
+  const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
   const starfieldAnimation = useRef(new Animated.Value(0)).current;
   
   // Star positions for randomized animation
@@ -77,6 +86,23 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
 
     return () => clearInterval(starfieldInterval);
   }, []);
+
+  // Navigation handler with error handling
+  const handleRelaxationNavigation = (soundType: string) => {
+    try {
+      console.log('🔍 Navigation debug info:');
+      console.log('- Current navigation object:', navigation);
+      console.log('- Attempting to navigate to RelaxationSound with type:', soundType);
+      
+      // Try the navigation
+      navigation.navigate('RelaxationSound', { soundType });
+      
+      console.log('✅ Navigation call completed successfully');
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
+      console.error('🚨 Navigation failed. This suggests a deeper navigation setup issue.');
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.primaryBackground }]}>
@@ -166,24 +192,33 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           <View style={styles.contentButtonRow}>
             <TouchableOpacity style={styles.contentButton}>
               <LinearGradient
-                colors={['#FF6B35', '#FF8E53', '#FF6B35']}
+                colors={['#FF6B35', '#FF8E53', '#FF6B35', '#FF4A1C']}
                 style={styles.contentButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
+                locations={[0, 0.3, 0.7, 1]}
               >
-                <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Articles</Text>
+                <View style={styles.contentButtonInner}>
+                  <Ionicons name="document-text" size={22} color={colors.primaryText} />
+                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Articles</Text>
+                </View>
+                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(255, 107, 53, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.contentButton}>
               <LinearGradient
-                colors={['#8B5CF6', '#A78BFA', '#8B5CF6']}
+                colors={['#8B5CF6', '#A78BFA', '#8B5CF6', '#7C3AED']}
                 style={styles.contentButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
+                locations={[0, 0.3, 0.7, 1]}
               >
-                <Ionicons name="trophy" size={20} color={colors.primaryText} />
-                <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Leaderboard</Text>
+                <View style={styles.contentButtonInner}>
+                  <Ionicons name="trophy" size={22} color={colors.primaryText} />
+                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Leaderboard</Text>
+                </View>
+                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -191,25 +226,33 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           <View style={styles.contentButtonRow}>
             <TouchableOpacity style={styles.contentButton}>
               <LinearGradient
-                colors={['#10B981', '#34D399', '#10B981']}
+                colors={['#10B981', '#34D399', '#10B981', '#059669']}
                 style={styles.contentButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
+                locations={[0, 0.3, 0.7, 1]}
               >
-                <Ionicons name="bar-chart" size={20} color={colors.primaryText} />
-                <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Learn</Text>
+                <View style={styles.contentButtonInner}>
+                  <Ionicons name="bar-chart" size={22} color={colors.primaryText} />
+                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Learn</Text>
+                </View>
+                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.contentButton}>
               <LinearGradient
-                colors={['#F59E0B', '#FBBF24', '#F59E0B']}
+                colors={['#F59E0B', '#FBBF24', '#F59E0B', '#D97706']}
                 style={styles.contentButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
+                locations={[0, 0.3, 0.7, 1]}
               >
-                <Ionicons name="heart" size={20} color={colors.primaryText} />
-                <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Wellness</Text>
+                <View style={styles.contentButtonInner}>
+                  <Ionicons name="heart" size={22} color={colors.primaryText} />
+                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Wellness</Text>
+                </View>
+                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -226,30 +269,46 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           <Text style={styles.sectionSubtitle}>Helping your heart-rate regulate when urges surge.</Text>
           
           <View style={styles.relaxationGrid}>
-            <TouchableOpacity style={styles.relaxationItem} onPress={() => navigation.navigate('RelaxationSound', { soundType: 'rain' })}>
+            <TouchableOpacity style={styles.relaxationItem} onPress={() => handleRelaxationNavigation('rain')}>
               <View style={styles.relaxationIconContainer}>
-                <Ionicons name="rainy" size={24} color={colors.primaryText} />
+                <Image 
+                  source={require('../../assets/library-sound-icons/rain-icon.webp')} 
+                  style={styles.relaxationIcon}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.relaxationLabel}>Rain</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.relaxationItem}>
+            <TouchableOpacity style={styles.relaxationItem} onPress={() => handleRelaxationNavigation('sea')}>
               <View style={styles.relaxationIconContainer}>
-                <Ionicons name="water" size={24} color={colors.primaryText} />
+                <Image 
+                  source={require('../../assets/library-sound-icons/new-sea-icon.webp')} 
+                  style={styles.relaxationIcon}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.relaxationLabel}>Ocean Waves</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.relaxationItem} onPress={() => navigation.navigate('RelaxationSound', { soundType: 'campfire' })}>
+            <TouchableOpacity style={styles.relaxationItem} onPress={() => handleRelaxationNavigation('campfire')}>
               <View style={styles.relaxationIconContainer}>
-                <Ionicons name="flame" size={24} color={colors.primaryText} />
+                <Image 
+                  source={require('../../assets/library-sound-icons/new-campfire-icon.webp')} 
+                  style={styles.relaxationIcon}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.relaxationLabel}>Campfire</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.relaxationItem}>
+            <TouchableOpacity style={styles.relaxationItem} onPress={() => handleRelaxationNavigation('white-noise')}>
               <View style={styles.relaxationIconContainer}>
-                <Ionicons name="radio" size={24} color={colors.primaryText} />
+                <Image 
+                  source={require('../../assets/library-sound-icons/white-noise-icon.webp')} 
+                  style={styles.relaxationIcon}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.relaxationLabel}>White Noise</Text>
             </TouchableOpacity>
@@ -405,34 +464,66 @@ const styles = StyleSheet.create({
   },
   contentButtonsContainer: {
     marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.xs,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: SPACING.lg,
+    paddingVertical: SPACING.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   contentButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.md + 4,
+    gap: SPACING.md,
   },
   contentButton: {
     flex: 1,
     marginHorizontal: SPACING.xs,
     borderRadius: SPACING.lg,
     overflow: 'hidden',
-    ...SHADOWS.card,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   contentButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg + 4,
+    paddingHorizontal: SPACING.lg + 8,
     borderRadius: SPACING.lg,
+    position: 'relative',
+  },
+  contentButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
   },
   contentButtonText: {
     ...buttonText,
     color: COLORS.primaryText,
-    marginLeft: SPACING.sm,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    fontSize: 16,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    letterSpacing: 0.5,
+  },
+  contentButtonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: SPACING.lg,
+    opacity: 0.6,
+    zIndex: 1,
   },
   contentCardsContainer: {
     marginBottom: SPACING.xl,
@@ -538,6 +629,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
+  },
+  relaxationIcon: {
+    width: '100%',
+    height: '100%',
   },
   relaxationLabel: {
     ...bodySmall,

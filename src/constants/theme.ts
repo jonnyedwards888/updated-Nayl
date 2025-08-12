@@ -40,6 +40,20 @@ export const COLORS = {
   progressBar: '#4F46E5',
   progressBarFill: '#818CF8',
   buttonGradient: ['#667eea', '#764ba2'],
+  
+  // Glassmorphism & Footer Colors
+  glassBackground: 'rgba(22, 33, 62, 0.85)', // Semi-transparent card background
+  glassBorder: 'rgba(255, 255, 255, 0.08)', // Subtle white border for glass effect
+  glassShadow: 'rgba(0, 0, 0, 0.25)', // Soft shadow for depth
+  footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+  footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+  
+  // Enhanced Icon Colors for Premium Footer
+  iconActivePrimary: '#FFFFFF', // Pure white for active state
+  iconActiveSecondary: '#C1FF72', // Accent color for secondary fill
+  iconInactivePrimary: 'rgb(255, 0, 0)', // Primary fill - currently dark gray
+  iconInactiveSecondary: 'rgb(255, 0, 0)', // Secondary fill - currently darker gray
+  iconGlow: 'rgba(193, 255, 114, 0.3)', // Subtle glow for active icons
 };
 
 export const TYPOGRAPHY = {
@@ -129,6 +143,24 @@ export const SHADOWS = {
     shadowOpacity: 0.5,
     shadowRadius: 24,
     elevation: 16,
+  },
+  
+  // Glassmorphism shadows for premium footer
+  glass: {
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  
+  // Footer-specific shadows for depth
+  footer: {
+    shadowColor: 'rgba(0, 0, 0, 0.4)',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
 };
 

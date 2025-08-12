@@ -348,15 +348,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, [isDayCompleteAndUnclaimed, claimablePulse]);
 
   // Goal completion feedback - check when elapsedSeconds changes
+  const celebratedMilestones = React.useRef(new Set<string>());
+  
   useEffect(() => {
     if (!isInitialized) return;
     
-    // Check for goal completions and trigger psychological feedback
-    if (elapsedSeconds === 3600) { // 1 hour
+    // Only trigger haptics at specific milestone moments, not every second
+    // Use refs to track which milestones we've already celebrated
+    
+    // Check for 1 hour milestone (only once)
+    if (elapsedSeconds >= 3600 && !celebratedMilestones.current.has('1hour')) {
+      celebratedMilestones.current.add('1hour');
       PsychologicalFeedbackService.provideAchievementFeedback(calculateProgress(elapsedSeconds), '1hour');
-    } else if (elapsedSeconds === 86400) { // 1 day
+    }
+    
+    // Check for 1 day milestone (only once)
+    if (elapsedSeconds >= 86400 && !celebratedMilestones.current.has('1day')) {
+      celebratedMilestones.current.add('1day');
       PsychologicalFeedbackService.provideAchievementFeedback(calculateProgress(elapsedSeconds), '1day');
-    } else if (elapsedSeconds === 604800) { // 1 week
+    }
+    
+    // Check for 1 week milestone (only once)
+    if (elapsedSeconds >= 604800 && !celebratedMilestones.current.has('1week')) {
+      celebratedMilestones.current.add('1week');
       PsychologicalFeedbackService.provideAchievementFeedback(calculateProgress(elapsedSeconds), '1week');
     }
     

@@ -46,24 +46,32 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
   const audioFiles = {
     campfire: require('../../assets/relaxation-sounds/campfire.mp3'),
     rain: require('../../assets/relaxation-sounds/rain-sounds.mp3'),
+    sea: require('../../assets/relaxation-sounds/rain-sounds.mp3'), // Using rain sound for sea for now
+    'white-noise': require('../../assets/relaxation-sounds/rain-sounds.mp3'), // Using rain sound for white noise for now
   };
 
   // Background image mapping
   const backgroundImages = {
     campfire: require('../../assets/relaxation-sounds/campfire-image.jpg'),
     rain: require('../../assets/relaxation-sounds/rain-image.jpg'),
+    sea: require('../../assets/relaxation-sounds/rain-image.jpg'), // Using rain image for sea for now
+    'white-noise': require('../../assets/relaxation-sounds/rain-image.jpg'), // Using rain image for white noise for now
   };
 
   // Title mapping
   const titles = {
     campfire: 'Campfire',
     rain: 'Rain',
+    sea: 'Ocean Waves',
+    'white-noise': 'White Noise',
   };
 
   // Icon mapping
   const icons = {
-    campfire: 'flame',
-    rain: 'rainy',
+    campfire: require('../../assets/library-sound-icons/new-campfire-icon.webp'),
+    rain: require('../../assets/library-sound-icons/rain-icon.webp'),
+    sea: require('../../assets/library-sound-icons/new-sea-icon.webp'),
+    'white-noise': require('../../assets/library-sound-icons/white-noise-icon.webp'),
   };
 
   useEffect(() => {
@@ -191,10 +199,10 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
         {/* Audio Info */}
         <View style={styles.audioInfo}>
           <View style={styles.audioIconContainer}>
-            <Ionicons 
-              name={(icons[soundType as keyof typeof icons] || icons.campfire) as any} 
-              size={32} 
-              color={COLORS.primaryText} 
+            <Image 
+              source={icons[soundType as keyof typeof icons] || icons.campfire} 
+              style={styles.audioIcon}
+              resizeMode="contain"
             />
           </View>
           <Text style={styles.audioTitle}>
@@ -283,6 +291,10 @@ const styles = StyleSheet.create({
     ...SHADOWS.card,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  audioIcon: {
+    width: '100%',
+    height: '100%',
   },
   audioTitle: {
     ...TYPOGRAPHY.headingLarge,

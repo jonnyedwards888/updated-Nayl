@@ -41,78 +41,109 @@ const SPACING = {
   xxxl: 64,
 };
 
-// Ultra-fast, simple typewriter component with continuous vibration
-const TypewriterText: React.FC<{ text: string; speed?: number; onComplete?: () => void }> = ({ 
-  text, 
-  speed = 0.06, // Slowed down by ~25% from 0.05 to 0.07
-  onComplete 
+// Ultra-fast, simple typewriter component with continuous vibration and cycling messages
+const TypewriterText: React.FC<{ 
+  messages: string[]; 
+  speed?: number; 
+  onComplete?: () => void;
+  isVisible: boolean; // Add visibility prop to control animation
+}> = ({ 
+  messages, 
+  speed = 2, // Ultra-fast typing (3ms per character)
+  onComplete,
+  isVisible
 }) => {
   const [displayedText, setDisplayedText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const vibrationRef = useRef<NodeJS.Timeout | null>(null);
+  const currentMessageIndexRef = useRef(0);
+  const currentCharIndexRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isAnimatingRef = useRef(false);
 
-  // Process text once to convert \n to actual line breaks
-  const processedText = useMemo(() => {
-    return text.replace(/\\n/g, '\n');
-  }, [text]);
-
-  // Start continuous vibration effect with stronger haptics
-  const startVibration = useCallback(() => {
-    vibrationRef.current = setInterval(() => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); // Changed from Light to Heavy for stronger punch
-    }, 50); // Vibrate every 50ms for continuous effect
-  }, []);
-
-  // Stop vibration
-  const stopVibration = useCallback(() => {
-    if (vibrationRef.current) {
-      clearInterval(vibrationRef.current);
-      vibrationRef.current = null;
-    }
-  }, []);
-
+  // Single useEffect to handle everything sequentially
   useEffect(() => {
-    // Reset state
-    setDisplayedText('');
-    setCurrentIndex(0);
-
-    // Start continuous vibration immediately
-    startVibration();
-
-    // Start the ultra-fast typewriter effect
-    intervalRef.current = setInterval(() => {
-      setCurrentIndex(prev => {
-        const nextIndex = prev + 1;
-        if (nextIndex <= processedText.length) {
-          // Use processedText instead of raw text
-          const currentText = processedText.slice(0, nextIndex);
-          setDisplayedText(currentText);
-          return nextIndex;
-        } else {
-          // Complete - stop vibration and typewriter
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-          stopVibration();
-          onComplete?.();
-          return prev;
-        }
-      });
-    }, speed);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    if (!isVisible) {
+      // Stop animation if not visible
+      isAnimatingRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
-      stopVibration();
+      return;
+    }
+
+    console.log('🚀 TypewriterText starting sequence');
+    isAnimatingRef.current = true;
+    currentMessageIndexRef.current = 0;
+    currentCharIndexRef.current = 0;
+    setDisplayedText('');
+    
+    const startTyping = () => {
+      if (!isAnimatingRef.current) return;
+      
+      const messageIndex = currentMessageIndexRef.current;
+      const message = messages[messageIndex];
+      
+      if (!message) {
+        console.log('✅ All messages complete');
+        onComplete?.();
+        return;
+      }
+
+      console.log(`📝 Starting message ${messageIndex}:`, message);
+      
+      const typeNextCharacter = () => {
+        if (!isAnimatingRef.current) return;
+        
+        const charIndex = currentCharIndexRef.current;
+        if (charIndex < message.length) {
+          const newText = message.slice(0, charIndex + 1);
+          setDisplayedText(newText);
+          
+          // Vibrate only while typing each character
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          
+          currentCharIndexRef.current = charIndex + 1;
+          
+          // Schedule next character
+          timeoutRef.current = setTimeout(typeNextCharacter, speed);
+        } else {
+          // Message complete
+          console.log(`🏁 Message ${messageIndex} complete`);
+          
+          // Wait 1 second, then move to next message
+          timeoutRef.current = setTimeout(() => {
+            if (isAnimatingRef.current) {
+              console.log(`⏰ Moving to next message: ${messageIndex + 1}`);
+              currentMessageIndexRef.current = messageIndex + 1;
+              currentCharIndexRef.current = 0;
+              startTyping(); // Recursive call to next message
+            }
+          }, 1000);
+        }
+      };
+
+      typeNextCharacter();
     };
-  }, [processedText, speed, onComplete, startVibration, stopVibration]);
+
+    startTyping();
+
+    // Cleanup function
+    return () => {
+      console.log('🧹 TypewriterText cleanup');
+      isAnimatingRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [isVisible]); // Only depend on isVisible to prevent infinite loops
 
   return (
-    <Text style={styles.warningText}>
-      {displayedText}
-    </Text>
+    <View style={styles.typewriterContainer}>
+      <Text style={styles.warningText}>
+        {displayedText}
+      </Text>
+    </View>
   );
 };
 
@@ -179,6 +210,9 @@ const PanicModal: React.FC = () => {
       // Reset all state when modal closes
       setShowTypewriter(false);
       setTypewriterComplete(false);
+      
+      // The TypewriterText component will automatically stop all animations
+      // when isVisible becomes false, preventing ongoing vibrations
     }
   }, [isPanicModalVisible]);
   
@@ -222,9 +256,14 @@ const PanicModal: React.FC = () => {
           {showTypewriter ? (
             <TypewriterText 
               key="typewriter-text"
-              text="STOP\nYOU MADE A\nPROMISE TO\nYOURSELF."
-              speed={0.055}
+              messages={[
+                "STOP\nYOU MADE A\nPROMISE TO\nYOURSELF.",
+                "IS THE SHORT\nRELIEF WORTH\nTHE SHAME?",
+                "YOU CAN DO THIS,\nYOU ARE NOT\nALONE."
+              ]}
+              speed={3} // Ultra-fast typing (3ms per character)
               onComplete={handleTypewriterComplete}
+              isVisible={showTypewriter}
             />
           ) : (
             <Text style={styles.warningText}>
@@ -236,74 +275,66 @@ const PanicModal: React.FC = () => {
           )}
         </View>
 
-        {/* Encouraging Message - only show after typewriter completes */}
-        {typewriterComplete && (
-          <View style={styles.encouragingContainer}>
-            <Text style={styles.encouragingText}>
-              Keep going, the urge to bite will pass...
-            </Text>
-          </View>
-        )}
+        {/* Encouraging Message - show immediately */}
+        <View style={styles.encouragingContainer}>
+          <Text style={styles.encouragingText}>
+            Keep going, the urge to bite will pass...
+          </Text>
+        </View>
 
-        {/* Warning Messages - only show after typewriter completes */}
-        {typewriterComplete && (
-          <View style={styles.warningsContainer}>
-            {warningMessages.map((message, index) => (
-              <View key={index} style={styles.warningBox}>
-                <View style={styles.warningContentContainer}>
-                  <Image 
-                    source={deterrentData[message.type].icon} 
-                    style={styles.warningIcon}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.warningBoxText}>{message.text}</Text>
-                </View>
-                                     <View style={styles.warningIconContainer}>
-                       {message.type ? (
-                         <TouchableOpacity
-                           style={styles.learnMoreButton}
-                           onPress={() => handleLearnMore(message.type!)}
-                         >
-                           <Ionicons name="arrow-forward" size={16} color={COLORS.primaryAccent} />
-                         </TouchableOpacity>
-                       ) : (
-                         <Ionicons name="warning" size={16} color="#F59E0B" />
-                       )}
-                     </View>
+        {/* Warning Messages - show immediately */}
+        <View style={styles.warningsContainer}>
+          {warningMessages.map((message, index) => (
+            <View key={index} style={styles.warningBox}>
+              <View style={styles.warningContentContainer}>
+                <Image 
+                  source={deterrentData[message.type].icon} 
+                  style={styles.warningIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.warningBoxText}>{message.text}</Text>
               </View>
-            ))}
-          </View>
-        )}
+                                   <View style={styles.warningIconContainer}>
+                   {message.type ? (
+                     <TouchableOpacity
+                       style={styles.learnMoreButton}
+                       onPress={() => handleLearnMore(message.type!)}
+                     >
+                       <Ionicons name="arrow-forward" size={16} color={COLORS.primaryAccent} />
+                     </TouchableOpacity>
+                   ) : (
+                     <Ionicons name="warning" size={16} color="#F59E0B" />
+                   )}
+                 </View>
+            </View>
+          ))}
+        </View>
 
-        {/* Trigger Warning - only show after typewriter completes */}
-        {typewriterComplete && (
-          <View style={styles.triggerWarningContainer}>
-            <Text style={styles.triggerWarningText}>See images (Trigger warning)</Text>
-          </View>
-        )}
+        {/* Trigger Warning - show immediately */}
+        <View style={styles.triggerWarningContainer}>
+          <Text style={styles.triggerWarningText}>See images (Trigger warning)</Text>
+        </View>
 
-        {/* Action Buttons - only show after typewriter completes */}
-        {typewriterComplete && (
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity style={styles.keepGoingButton} onPress={handleKeepGoing}>
-              <LinearGradient
-                colors={['#A3E635', '#16A34A']}
-                style={styles.keepGoingGradient}
-              >
-                <Text style={styles.keepGoingText}>Keep Going</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+        {/* Action Buttons - show immediately */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity style={styles.keepGoingButton} onPress={handleKeepGoing}>
+            <LinearGradient
+              colors={['#A3E635', '#16A34A']}
+              style={styles.keepGoingGradient}
+            >
+              <Text style={styles.keepGoingText}>Keep Going</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.urgesButton} onPress={handleUrges}>
-              <LinearGradient
-                colors={['#EF4444', '#991B1B']}
-                style={styles.urgesGradient}
-              >
-                <Text style={styles.urgesText}>I'm getting urges</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )}
+          <TouchableOpacity style={styles.urgesButton} onPress={handleUrges}>
+            <LinearGradient
+              colors={['#EF4444', '#991B1B']}
+              style={styles.urgesGradient}
+            >
+              <Text style={styles.urgesText}>I'm getting urges</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* Bottom spacing */}
         <View style={styles.bottomSpacing} />
@@ -351,6 +382,7 @@ const styles = StyleSheet.create({
   warningContainer: {
     alignItems: 'center',
     marginBottom: SPACING.xl,
+    minHeight: 200, // Fixed height to prevent layout shifts
   },
   warningText: {
     ...body,
@@ -478,7 +510,7 @@ const styles = StyleSheet.create({
   },
   keepGoingText: {
     ...buttonText,
-    color: COLORS.primaryBackground,
+    color: COLORS.primaryText, // Changed from COLORS.primaryBackground to white
     fontSize: 16,
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -513,6 +545,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: SPACING.xl,
+  },
+  typewriterContainer: {
+    alignItems: 'center',
+    minHeight: 200, // Fixed height to prevent layout shifts
+    justifyContent: 'center',
   },
 });
 

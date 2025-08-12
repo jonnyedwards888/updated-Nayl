@@ -7,97 +7,38 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Animated,
   Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import Svg, { Circle, Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
-import { BlurView } from 'expo-blur';
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
+import { useStreak } from '../context/StreakContext';
+import sessionService from '../services/sessionService';
+import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
+import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 
 // Mock data
-const mockElapsedDays = 1;
-const RECOVERY_TARGET_DAYS = 90;
-const recoveryPercentage = (mockElapsedDays / RECOVERY_TARGET_DAYS) * 100;
-const daysToRecovery = RECOVERY_TARGET_DAYS - mockElapsedDays;
-const estimatedRecoveryDate = new Date();
-estimatedRecoveryDate.setDate(estimatedRecoveryDate.getDate() + daysToRecovery);
-
-// Line graph data
-const graphData = [
-  { day: 0, value: 0 },
-  { day: 7, value: 8 },
-  { day: 14, value: 15 },
-  { day: 21, value: 23 },
-  { day: 30, value: 33 },
-  { day: 45, value: 50 },
-  { day: 60, value: 67 },
-  { day: 75, value: 83 },
-  { day: 90, value: 100 },
-];
-
-// Benefits data with multi-color icon system
-const benefits = [
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/increased-confidence.webp'),
-    title: 'Improved Confidence',
-    description: 'Feel more comfortable showing your hands in social and professional situations.',
-    progress: 85,
-    color: '#C1FF72', // Vibrant lime-green
-  },
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/healthy-nails.webp'),
-    title: 'Healthier Nails',
-    description: 'Nails and cuticles recover, grow stronger, and look better.',
-    progress: 92,
-    color: '#0A4F6B', // Calming teal
-  },
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/new-meditation-icon.webp'),
-    title: 'Reduced Stress',
-    description: 'Break the cycle of anxiety and nervous habits.',
-    progress: 78,
-    color: '#F59E0B', // Warm warning amber
-  },
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/fewer-infections-icon.webp'),
-    title: 'Fewer Infections',
-    description: 'Lower risk of nail, skin, and mouth infections.',
-    progress: 88,
-    color: '#0EA5E9', // Soft info blue
-  },
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/willpower-icon.webp'),
-    title: 'Stronger Self-Control',
-    description: 'Build willpower and break the habit for good.',
-    progress: 73,
-    color: '#C1FF72', // Back to lime-green
-  },
-  {
-    icon: 'custom',
-    iconSource: require('../../assets/recovery-page-icons/better-hygiene-icon.webp'),
-    title: 'Better Hygiene',
-    description: 'Fewer germs and less risk of illness.',
-    progress: 95,
-    color: '#0A4F6B', // Back to teal
-  },
-];
+const RECOVERY_TARGET_DAYS = 60; // Brain rewiring target (60 days)
 
 const AnalyticsScreen: React.FC = () => {
   const navigation = useNavigation();
   const themeResult = useThemeGuaranteed();
   const colors = themeResult?.colors;
+  const { elapsedSeconds } = useStreak();
   
+  // Calculate real progress data
+  const recoveryPercentage = sessionService.calculateBrainRewiringPercentage(elapsedSeconds);
+  const daysToRecovery = RECOVERY_TARGET_DAYS - Math.floor(elapsedSeconds / (24 * 60 * 60));
+  const estimatedRecoveryDate = new Date();
+  estimatedRecoveryDate.setDate(estimatedRecoveryDate.getDate() + daysToRecovery);
+
   // Enhanced safety check for theme colors
   if (!colors || 
       typeof colors !== 'object' || 
@@ -160,45 +101,60 @@ const AnalyticsScreen: React.FC = () => {
     };
   }, []);
 
-  // Generate SVG path for line graph
-  const generatePath = () => {
-    const graphWidth = width - 80;
-    const graphHeight = 120;
-    const maxValue = Math.max(...graphData.map(d => d.value));
-    const maxDay = Math.max(...graphData.map(d => d.day));
-    
-    const points = graphData.map((point, index) => {
-      const x = (point.day / maxDay) * graphWidth + 40;
-      const y = graphHeight - (point.value / maxValue) * graphHeight + 60;
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ');
-    
-    return points;
-  };
-
-  // Generate area fill path
-  const generateAreaPath = () => {
-    const graphWidth = width - 80;
-    const graphHeight = 120;
-    const maxValue = Math.max(...graphData.map(d => d.value));
-    const maxDay = Math.max(...graphData.map(d => d.day));
-    
-    const points = graphData.map((point, index) => {
-      const x = (point.day / maxDay) * graphWidth + 40;
-      const y = graphHeight - (point.value / maxValue) * graphHeight + 60;
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ');
-    
-    const lastPoint = graphData[graphData.length - 1];
-    const lastX = (lastPoint.day / maxDay) * graphWidth + 40;
-    const firstPoint = graphData[0];
-    const firstX = (firstPoint.day / maxDay) * graphWidth + 40;
-    
-    return `${points} L ${lastX} ${graphHeight + 60} L ${firstX} ${graphHeight + 60} Z`;
-  };
+  // Benefits data with multi-color icon system
+  const benefits = [
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/increased-confidence.webp'),
+      title: 'Improved Confidence',
+      description: 'Feel more comfortable showing your hands in social and professional situations.',
+      progress: 85,
+      color: '#C1FF72', // Vibrant lime-green
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/healthy-nails.webp'),
+      title: 'Healthier Nails',
+      description: 'Nails and cuticles recover, grow stronger, and look better.',
+      progress: 92,
+      color: '#0A4F6B', // Calming teal
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/new-meditation-icon.webp'),
+      title: 'Reduced Stress',
+      description: 'Break the cycle of anxiety and nervous habits.',
+      progress: 78,
+      color: '#F59E0B', // Warm warning amber
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/fewer-infections-icon.webp'),
+      title: 'Fewer Infections',
+      description: 'Lower risk of nail, skin, and mouth infections.',
+      progress: 88,
+      color: '#0EA5E9', // Soft info blue
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/willpower-icon.webp'),
+      title: 'Stronger Self-Control',
+      description: 'Build willpower and break the habit for good.',
+      progress: 73,
+      color: '#C1FF72', // Back to lime-green
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/better-hygiene-icon.webp'),
+      title: 'Better Hygiene',
+      description: 'Fewer germs and less risk of illness.',
+      progress: 95,
+      color: '#0A4F6B', // Back to teal
+    },
+  ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.primaryBackground }]}>
+    <SafeAreaView style={styles.container}>
       {/* Consistent background gradient with particle starfield (same as Home) */}
       <LinearGradient
         colors={colors.backgroundGradient}
@@ -250,8 +206,8 @@ const AnalyticsScreen: React.FC = () => {
             <View style={styles.progressTextContainer}>
               <Text style={[styles.progressLabel, { color: colors.secondaryText }]}>RECOVERY</Text>
               <Text style={[styles.progressPercentage, { color: colors.primaryText }]}>{Math.round(recoveryPercentage)}%</Text>
-              <Text style={[styles.progressSubtext, { color: colors.secondaryText }]}>{mockElapsedDays} DAY STREAK</Text>
-              <Text style={[styles.progressTarget, { color: colors.mutedText }]}>Progress to {RECOVERY_TARGET_DAYS} days</Text>
+              <Text style={[styles.progressSubtext, { color: colors.secondaryText }]}>{Math.floor(elapsedSeconds / (24 * 60 * 60))} DAY STREAK</Text>
+              <Text style={[styles.progressTarget, { color: colors.mutedText }]}>Progress to {RECOVERY_TARGET_DAYS} days (Brain Rewiring)</Text>
             </View>
           </View>
           
@@ -276,47 +232,6 @@ const AnalyticsScreen: React.FC = () => {
             <Text style={[styles.motivationalText, { color: colors.primaryText }]}>
               The first few days are always the hardest, but you've already shown incredible strength. Hold on to your reasons for starting this journey.
             </Text>
-          </View>
-        </View>
-
-        {/* Graph Section */}
-        <View style={styles.graphSection}>
-          <Text style={[styles.graphTitle, { color: colors.primaryText }]}>Your Progress Journey</Text>
-          <View style={[styles.graphContainer, { backgroundColor: colors.secondaryBackground, borderColor: colors.secondaryAccent }]}>
-            <Svg width={width} height={160} style={styles.svg}>
-              <Defs>
-                <SvgLinearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <Stop offset="0%" stopColor="#F8FAFC" />
-                  <Stop offset="50%" stopColor="#E2E8F0" />
-                  <Stop offset="100%" stopColor="#CBD5E1" />
-                </SvgLinearGradient>
-                <SvgLinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <Stop offset="0%" stopColor="rgba(248, 250, 252, 0.3)" />
-                  <Stop offset="100%" stopColor="rgba(203, 213, 225, 0.1)" />
-                </SvgLinearGradient>
-              </Defs>
-              
-              <Path
-                d={generateAreaPath()}
-                fill="url(#areaGradient)"
-              />
-              
-              <Path
-                d={generatePath()}
-                stroke="url(#lineGradient)"
-                strokeWidth={4}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            
-            <View style={styles.axisLabels}>
-              <Text style={[styles.axisLabel, { color: colors.mutedText }]}>Start</Text>
-              <Text style={[styles.axisLabel, { color: colors.mutedText }]}>30 days</Text>
-              <Text style={[styles.axisLabel, { color: colors.mutedText }]}>60 days</Text>
-              <Text style={[styles.axisLabel, { color: colors.mutedText }]}>90 days</Text>
-            </View>
           </View>
         </View>
 
@@ -360,6 +275,7 @@ const AnalyticsScreen: React.FC = () => {
           </View>
         </View>
 
+        {/* Bottom spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
@@ -374,7 +290,45 @@ const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: numb
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+  
+  // Track if we've already animated this progress value
+  const hasAnimated = React.useRef(false);
+  const [displayProgress, setDisplayProgress] = React.useState(0);
+  
+  // Animate progress when component mounts or progress changes
+  React.useEffect(() => {
+    // Only animate if we haven't animated this progress value yet
+    if (!hasAnimated.current) {
+      hasAnimated.current = true;
+      
+      // Start from 0 and animate to target progress
+      let startTime = Date.now();
+      const duration = 300; // 400ms animation - much quicker!
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progressRatio = Math.min(elapsed / duration, 1);
+        
+        // Use easing function for smooth animation
+        const easedProgress = 1 - Math.pow(1 - progressRatio, 3); // Cubic ease-out
+        const currentProgress = easedProgress * progress;
+        
+        setDisplayProgress(currentProgress);
+        
+        if (progressRatio < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete - add haptic feedback
+          hapticService.trigger(HapticType.LIGHT_TAP, HapticIntensity.SUBTLE);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [progress]); // Only depend on progress
+  
+  // Calculate stroke dash offset based on current display progress
+  const strokeDashoffset = circumference - (displayProgress / 100) * circumference;
 
   return (
     <Svg width={size} height={size}>
@@ -414,7 +368,7 @@ const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: numb
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: 'transparent', // Changed from '#0F172A' to transparent
   },
   backgroundContainer: {
     position: 'absolute',
@@ -553,112 +507,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '500',
   },
-  graphSection: {
-    marginBottom: SPACING.lg,
-  },
-  graphTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: '#FFFFFF',
-    marginBottom: SPACING.md,
-    textAlign: 'center',
-  },
-  graphContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    ...SHADOWS.card,
-  },
-  svg: {
-    alignSelf: 'center',
-  },
-  axisLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-  },
-  axisLabel: {
-    ...TYPOGRAPHY.caption,
-    color: '#94A3B8',
-    opacity: 0.8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginVertical: SPACING.lg,
-  },
-  benefitsSection: {
-    marginBottom: SPACING.lg,
-  },
-  benefitsTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: '#FFFFFF',
-    marginBottom: SPACING.md,
-    textAlign: 'center',
-  },
-  benefitsCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    ...SHADOWS.deep,
-    overflow: 'hidden',
-  },
-  benefitsBlur: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: BORDER_RADIUS.xl,
-  },
-  benefitsCardBody: {
-    paddingVertical: SPACING.xs,
-  },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: SPACING.sm,
-  },
-  benefitIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-    ...SHADOWS.button,
-  },
-  benefitTextCol: {
-    flex: 1,
-  },
-  benefitTitle: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: '#FFFFFF',
-    marginBottom: SPACING.xs,
-    fontWeight: '600',
-  },
-  benefitDescription: {
-    ...TYPOGRAPHY.bodyMedium,
-    color: '#94A3B8',
-    lineHeight: 20,
-    marginBottom: SPACING.sm,
-  },
-  benefitProgressBg: {
-    height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: BORDER_RADIUS.sm,
-    overflow: 'hidden',
-    marginTop: SPACING.xs,
-  },
-  benefitProgressFill: {
-    height: '100%',
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  benefitDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
   bottomSpacing: {
     height: SPACING.lg,
   },
@@ -670,11 +518,81 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    // Extend beyond safe area to cover the entire screen including below footer
+    minHeight: height + 100, // Add extra height to ensure coverage
+  },
+  divider: {
+    height: 1,
+    marginVertical: SPACING.md,
+  },
+  benefitsSection: {
+    marginBottom: SPACING.lg,
+  },
+  benefitsTitle: {
+    ...TYPOGRAPHY.headingMedium,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+  },
+  benefitsCard: {
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    ...SHADOWS.card,
+    overflow: 'hidden',
+  },
+  benefitsBlur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  benefitsCardBody: {
+    padding: SPACING.lg,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  benefitIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+    overflow: 'hidden', // Ensure the image doesn't overflow the circular bounds
   },
   benefitIconImage: {
-    width: '100%',
+    width: '100%', // Fill the entire circular container
+    height: '100%', // Fill the entire circular container
+    borderRadius: 20, // Match the container's border radius
+  },
+  benefitTextCol: {
+    flex: 1,
+  },
+  benefitTitle: {
+    ...TYPOGRAPHY.bodyMedium,
+    fontWeight: '600',
+    marginBottom: SPACING.xs,
+  },
+  benefitDescription: {
+    ...TYPOGRAPHY.bodySmall,
+    marginBottom: SPACING.sm,
+  },
+  benefitProgressBg: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  benefitProgressFill: {
     height: '100%',
-    borderRadius: 22,
+    borderRadius: 4,
+  },
+  benefitDivider: {
+    height: 1,
+    marginVertical: SPACING.sm,
   },
 });
 

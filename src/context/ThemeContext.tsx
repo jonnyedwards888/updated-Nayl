@@ -31,6 +31,19 @@ export interface ThemeColors {
   glassBorderLight: string;
   glassBorderPremium: string;
   premiumWhite: string;
+  
+  // Glassmorphism & Footer Colors
+  glassBackground: string;
+  glassShadow: string;
+  footerBackground: string;
+  footerBorder: string;
+  
+  // Enhanced Icon Colors for Premium Footer
+  iconActivePrimary: string;
+  iconActiveSecondary: string;
+  iconInactivePrimary: string;
+  iconInactiveSecondary: string;
+  iconGlow: string;
 }
 
 export const THEMES: Record<ThemeType, ThemeColors> = {
@@ -53,6 +66,19 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
     premiumWhite: '#F8FAFC',
+    
+    // Glassmorphism & Footer Colors
+    glassBackground: 'rgba(22, 33, 62, 0.85)',
+    glassShadow: 'rgba(0, 0, 0, 0.25)',
+    footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+    footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+    
+    // Enhanced Icon Colors for Premium Footer
+    iconActivePrimary: '#FFFFFF',
+    iconActiveSecondary: '#C1FF72',
+    iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+    iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+    iconGlow: 'rgba(193, 255, 114, 0.3)',
   },
   ocean: {
     // Ocean blue theme (previous)
@@ -73,6 +99,19 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
     premiumWhite: '#F8FAFC',
+    
+    // Glassmorphism & Footer Colors
+    glassBackground: 'rgba(22, 33, 62, 0.85)',
+    glassShadow: 'rgba(0, 0, 0, 0.25)',
+    footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+    footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+    
+    // Enhanced Icon Colors for Premium Footer
+    iconActivePrimary: '#FFFFFF',
+    iconActiveSecondary: '#C1FF72',
+    iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+    iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+    iconGlow: 'rgba(193, 255, 114, 0.3)',
   },
   twilight: {
     backgroundGradient: ['rgb(48, 12, 87)', 'rgb(63, 11, 54)', 'rgb(80, 19, 118)'],
@@ -92,6 +131,19 @@ export const THEMES: Record<ThemeType, ThemeColors> = {
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
     premiumWhite: '#F8FAFC',
+    
+    // Glassmorphism & Footer Colors
+    glassBackground: 'rgba(22, 33, 62, 0.85)',
+    glassShadow: 'rgba(0, 0, 0, 0.25)',
+    footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+    footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+    
+    // Enhanced Icon Colors for Premium Footer
+    iconActivePrimary: '#FFFFFF',
+    iconActiveSecondary: '#C1FF72',
+    iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+    iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+    iconGlow: 'rgba(193, 255, 114, 0.3)',
   },
 };
 
@@ -127,6 +179,19 @@ const FALLBACK_THEME: ThemeContextType = {
     glassBorderLight: 'rgba(255, 255, 255, 0.1)',
     glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
     premiumWhite: '#F8FAFC',
+    
+    // Glassmorphism & Footer Colors
+    glassBackground: 'rgba(42, 42, 42, 0.85)',
+    glassShadow: 'rgba(0, 0, 0, 0.25)',
+    footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+    footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+    
+    // Enhanced Icon Colors for Premium Footer
+    iconActivePrimary: '#FFFFFF',
+    iconActiveSecondary: '#C1FF72',
+    iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+    iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+    iconGlow: 'rgba(193, 255, 114, 0.3)',
   },
   setTheme: () => {
     console.warn('⚠️ setTheme called on fallback theme');
@@ -381,6 +446,19 @@ const ThemeProviderContent: React.FC<{ children: React.ReactNode }> = ({ childre
       glassBorderLight: 'rgba(255, 255, 255, 0.1)',
       glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
       premiumWhite: '#F8FAFC',
+      
+      // Glassmorphism & Footer Colors
+      glassBackground: 'rgba(42, 42, 42, 0.85)',
+      glassShadow: 'rgba(0, 0, 0, 0.25)',
+      footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+      footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+      
+      // Enhanced Icon Colors for Premium Footer
+      iconActivePrimary: '#FFFFFF',
+      iconActiveSecondary: '#C1FF72',
+      iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+      iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+      iconGlow: 'rgba(193, 255, 114, 0.3)',
     };
     
     const contextValue: ThemeContextType = {
@@ -429,6 +507,19 @@ const ThemeProviderContent: React.FC<{ children: React.ReactNode }> = ({ childre
       glassBorderLight: 'rgba(255, 255, 255, 0.1)',
       glassBorderPremium: 'rgba(255, 255, 255, 0.14)',
       premiumWhite: '#F8FAFC',
+      
+      // Glassmorphism & Footer Colors
+      glassBackground: 'rgba(42, 42, 42, 0.85)',
+      glassShadow: 'rgba(0, 0, 0, 0.25)',
+      footerBackground: 'rgba(15, 15, 20, 0.92)', // Premium glassmorphic mix of black and gray like Sweatcoin
+      footerBorder: 'rgba(255, 255, 255, 0.08)', // More subtle border for natural look
+      
+      // Enhanced Icon Colors for Premium Footer
+      iconActivePrimary: '#FFFFFF',
+      iconActiveSecondary: '#C1FF72',
+      iconInactivePrimary: '#B8B8B8', // Much more subtle gray for inactive primary
+      iconInactiveSecondary: '#6B6B6B', // Very muted gray for inactive secondary
+      iconGlow: 'rgba(193, 255, 114, 0.3)',
     } as ThemeColors;
   }
   

@@ -99,16 +99,55 @@ function AppContent() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: colors.cardBackground,
-            borderTopColor: colors.glassBorder,
-            borderTopWidth: 1,
+            // Completely transparent footer to eliminate white edges
+            backgroundColor: 'transparent',
+            borderTopColor: 'transparent',
+            borderTopWidth: 0,
             height: 80,
-            paddingBottom: 10,
-            paddingTop: 10,
+            paddingBottom: 6, // Reduced from 10 to move content higher
+            paddingTop: 6, // Reduced from 10 to move content higher
             display: isPanicModalVisible ? 'none' : 'flex', // Hide tab bar when panic modal is visible
+            
+            // Remove all shadows and borders
+            shadowColor: 'transparent',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0,
+            shadowRadius: 0,
+            elevation: 0,
+            
+            // Remove curved edges for now to eliminate the white background issue
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
           },
-          tabBarActiveTintColor: colors.premiumWhite,
-          tabBarInactiveTintColor: colors.mutedText,
+          // Custom footer background
+          tabBarBackground: () => (
+            <View style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 80,
+              backgroundColor: colors.footerBackground,
+              // Add subtle shadow for depth
+              shadowColor: colors.glassShadow,
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }} />
+          ),
+          tabBarActiveTintColor: colors.iconActivePrimary,
+          tabBarInactiveTintColor: colors.iconInactivePrimary,
+          
+          // Premium tab bar styling
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: 2, // Reduced from 4 to move text higher up
+          },
+          tabBarItemStyle: {
+            paddingVertical: 2, // Reduced from 4 to move content higher
+          },
         }}
         screenListeners={{
           tabPress: async (e) => {
@@ -121,73 +160,189 @@ function AppContent() {
           },
         }}
       >
+        {/* ========================================
+            FOOTER NAVIGATION TABS
+            ========================================
+            
+            CUSTOMIZATION GUIDE:
+            =====================
+            
+            1. ICON COLORS (Theme-based):
+               - Active Primary: colors.iconActivePrimary (white)
+               - Active Secondary: colors.iconActiveSecondary (green accent)
+               - Inactive Primary: colors.iconInactivePrimary (muted gray)
+               - Inactive Secondary: colors.iconInactiveSecondary (dark gray)
+               
+            2. BACKGROUND INDICATORS:
+               - Default: 'rgba(193, 255, 114, 0.05)' (subtle green)
+               - Analytics: 'rgba(231, 0, 0, 0.92)' (bright red - CUSTOM)
+               - Change any tab's backgroundColor for custom colors
+               
+            3. ICON STYLING:
+               - weight="duotone" for two-tone effect
+               - size={TAB_ICON_SIZE} (24px)
+               - padding: 8, borderRadius: 12 for background
+               
+            4. GLOW EFFECTS:
+               - shadowColor: colors.iconGlow (green glow)
+               - shadowOpacity: 0.4 when focused
+               - shadowRadius: 6 for soft glow
+               
+            TO CUSTOMIZE A TAB:
+            - Change backgroundColor for custom background color
+            - Override color/secondaryColor for custom icon colors
+            - Modify shadowColor for custom glow effects
+            ======================================== */}
+        
+        {/* Home Tab - Main screen */}
         <Tab.Screen 
           name="Home" 
           component={HomeStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <House 
-                size={TAB_ICON_SIZE} 
-                color={color as string}
-                secondaryColor={focused ? ICON_FILL_ACTIVE : ICON_FILL_INACTIVE}
-                weight="duotone"
-              />
+              <View style={{
+                padding: 8,
+                borderRadius: 12,
+                // Active tab background indicator - subtle green glow
+                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
+                // Icon glow effect for active state
+                shadowColor: focused ? colors.iconGlow : 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 6,
+                elevation: focused ? 2 : 0,
+              }}>
+                <House 
+                  size={TAB_ICON_SIZE} 
+                  // Icon colors: white for active, muted gray for inactive
+                  color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
+                  // Secondary fill: green accent for active, dark gray for inactive
+                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
+                  weight="duotone"
+                />
+              </View>
             ),
           }}
         />
+        
+        {/* Achievements Tab - Trophy icon */}
         <Tab.Screen 
           name="Achievements" 
           component={AchievementsScreen}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <Trophy 
-                size={TAB_ICON_SIZE} 
-                color={color as string}
-                secondaryColor={focused ? ICON_FILL_ACTIVE : ICON_FILL_INACTIVE}
-                weight="duotone"
-              />
+              <View style={{
+                padding: 8,
+                borderRadius: 12,
+                // Active tab background indicator - subtle green glow
+                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
+                // Icon glow effect for active state
+                shadowColor: focused ? colors.iconGlow : 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 6,
+                elevation: focused ? 2 : 0,
+              }}>
+                <Trophy 
+                  size={TAB_ICON_SIZE} 
+                  // Icon colors: white for active, muted gray for inactive
+                  color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
+                  // Secondary fill: green accent for active, dark gray for inactive
+                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
+                  weight="duotone"
+                />
+              </View>
             ),
           }}
         />
+        
+        {/* Analytics Tab - Bar chart icon with custom red background */}
         <Tab.Screen 
           name="Analytics" 
           component={AnalyticsScreen}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <ChartBar 
-                size={TAB_ICON_SIZE} 
-                color={color as string}
-                secondaryColor={focused ? ICON_FILL_ACTIVE : ICON_FILL_INACTIVE}
-                weight="duotone"
-              />
+              <View style={{
+                padding: 8,
+                borderRadius: 12,
+                // CUSTOM: Bright red background for Analytics tab when active
+                backgroundColor: focused ? 'rgba(0, 0, 0, 0.92)' : 'transparent',
+                // Icon glow effect for active state
+                shadowColor: focused ? colors.iconGlow : 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 6,
+                elevation: focused ? 2 : 0,
+              }}>
+                <ChartBar 
+                  size={TAB_ICON_SIZE} 
+                  color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
+                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
+                  weight="duotone"
+                />
+              </View>
             ),
           }}
         />
+        
+        {/* Library Tab - Book icon */}
         <Tab.Screen 
           name="Library" 
-          component={LibraryStack}
+          component={LibraryScreen}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <Book 
-                size={TAB_ICON_SIZE} 
-                color={color as string}
-                secondaryColor={focused ? ICON_FILL_ACTIVE : ICON_FILL_INACTIVE}
-                weight="duotone"
-              />
+              <View style={{
+                padding: 8,
+                borderRadius: 12,
+                // Active tab background indicator - subtle green glow
+                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
+                // Icon glow effect for active state
+                shadowColor: focused ? colors.iconGlow : 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 6,
+                elevation: focused ? 2 : 0,
+              }}>
+                <Book 
+                  size={TAB_ICON_SIZE} 
+                  // Icon colors: white for active, muted gray for inactive
+                  color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
+                  // Secondary fill: green accent for active, dark gray for inactive
+                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
+                  weight="duotone"
+                />
+              </View>
             ),
           }}
         />
+        
+        {/* Profile Tab - User icon */}
         <Tab.Screen 
           name="Profile" 
-          component={ProfileStack}
+          component={ProfileScreen}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <User 
-                size={TAB_ICON_SIZE} 
-                color={color as string}
-                secondaryColor={focused ? ICON_FILL_ACTIVE : ICON_FILL_INACTIVE}
-                weight="duotone"
-              />
+              <View style={{
+                padding: 8,
+                borderRadius: 12,
+                // Active tab background indicator - subtle green glow
+                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
+                // Icon glow effect for active state
+                shadowColor: focused ? colors.iconGlow : 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 6,
+                elevation: focused ? 2 : 0,
+              }}>
+                <User 
+                  size={TAB_ICON_SIZE} 
+                  // Icon colors: white for active, muted gray for inactive
+                  color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
+                  // Secondary fill: green accent for active, dark gray for inactive
+                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
+                  weight="duotone"
+                />
+              </View>
             ),
           }}
         />
