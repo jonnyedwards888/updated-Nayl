@@ -6,14 +6,16 @@ import {
   Dimensions,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
   Image,
-  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import { body, bodySmall, caption, buttonText } from '../constants/typography';
-import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
+import { useMeditation } from '../context/MeditationContext';
+import { COLORS } from '../constants/theme';
+import { body, buttonText } from '../constants/typography';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,26 +30,35 @@ const SPACING = {
   xxxl: 64,
 };
 
+type SoundType = 'campfire' | 'rain' | 'sea' | 'white-noise';
+
 interface RelaxationSoundScreenProps {
+  route: {
+    params: {
+      soundType: SoundType;
+    };
+  };
   navigation: any;
-  route: any;
 }
 
-const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigation, route }) => {
+const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ route, navigation }) => {
+  const { colors } = useThemeGuaranteed();
+  const { setIsMeditationActive } = useMeditation();
+  const { soundType } = route.params;
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [loopCount, setLoopCount] = useState(0);
+  const startTimeRef = useRef<number>(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { soundType = 'campfire' } = route.params || {};
-
-  // Audio file mapping
+  // Audio file mapping - using the correct files for each type
   const audioFiles = {
-    campfire: require('../../assets/relaxation-sounds/campfire.mp3'),
-    rain: require('../../assets/relaxation-sounds/rain-sounds.mp3'),
-    sea: require('../../assets/relaxation-sounds/rain-sounds.mp3'), // Using rain sound for sea for now
-    'white-noise': require('../../assets/relaxation-sounds/rain-sounds.mp3'), // Using rain sound for white noise for now
+    campfire: require('../../assets/relaxation-sounds/campfire-sounds-short.mp3'),
+    rain: require('../../assets/relaxation-sounds/short-rain-sounds.mp3'),
+    sea: require('../../assets/relaxation-sounds/ocean-waves.mp3'), // Using ocean-waves.mp3 for sea
+    'white-noise': require('../../assets/relaxation-sounds/white-noise.mp3'), // Using white-noise.mp3 for white noise
   };
 
   // Background image mapping
@@ -74,6 +85,14 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
     'white-noise': require('../../assets/library-sound-icons/white-noise-icon.webp'),
   };
 
+  // Set meditation active to hide footer
+  useEffect(() => {
+    setIsMeditationActive(true);
+    return () => {
+      setIsMeditationActive(false);
+    };
+  }, [setIsMeditationActive]);
+
   useEffect(() => {
     setupAudio();
     return () => {
@@ -84,12 +103,7 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
   }, []);
 
   useEffect(() => {
-    // Fade in animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
+    // Fade in animation removed - no longer needed
   }, []);
 
   const setupAudio = async () => {
@@ -128,7 +142,7 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
       // Get duration
       const status = await audioSound.getStatusAsync();
       if (status.isLoaded) {
-        setDuration(status.durationMillis || 0);
+        // setDuration(status.durationMillis || 0); // This line was removed as per new_code
       }
 
       // Set up position tracking
@@ -168,18 +182,12 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Background Image */}
       <Image
         source={backgroundImages[soundType as keyof typeof backgroundImages] || backgroundImages.campfire}
         style={styles.backgroundImage}
         resizeMode="cover"
-      />
-      
-      {/* Overlay Gradient */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.8)']}
-        style={styles.overlay}
       />
 
       {/* Header */}
@@ -195,7 +203,7 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
       </View>
 
       {/* Content */}
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+      <View style={styles.content}>
         {/* Audio Info */}
         <View style={styles.audioInfo}>
           <View style={styles.audioIconContainer}>
@@ -212,7 +220,7 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
             {formatTime(elapsedTime)} elapsed time
           </Text>
         </View>
-      </Animated.View>
+      </View>
 
       {/* Bottom Control Panel */}
       <View style={styles.bottomPanel}>
@@ -225,14 +233,16 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ navigatio
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primaryBackground,
+    backgroundColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
   backgroundImage: {
     position: 'absolute',
@@ -242,26 +252,26 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    resizeMode: 'cover',
+    zIndex: -1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
+    paddingTop: SPACING.xxl + SPACING.lg, // Increased from SPACING.lg to account for status bar
     paddingBottom: SPACING.md,
     zIndex: 10,
+    backgroundColor: 'transparent',
   },
   backButton: {
     borderRadius: 25,
     overflow: 'hidden',
-    ...SHADOWS.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   backButtonGradient: {
     width: 50,
@@ -275,10 +285,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
+    backgroundColor: 'transparent',
   },
   audioInfo: {
     alignItems: 'center',
     marginBottom: SPACING.xxl,
+    backgroundColor: 'transparent',
   },
   audioIconContainer: {
     width: 80,
@@ -288,7 +300,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.lg,
-    ...SHADOWS.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -297,7 +313,8 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   audioTitle: {
-    ...TYPOGRAPHY.headingLarge,
+    fontSize: 28,
+    fontWeight: '700',
     color: COLORS.primaryText,
     marginBottom: SPACING.sm,
     textAlign: 'center',
@@ -306,7 +323,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   elapsedTime: {
-    ...bodySmall,
+    fontSize: 16,
+    fontWeight: '400',
     color: COLORS.primaryText,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
@@ -318,7 +336,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'transparent',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xl,
     paddingBottom: SPACING.xxl,
@@ -326,7 +344,11 @@ const styles = StyleSheet.create({
   stopButton: {
     borderRadius: SPACING.lg,
     overflow: 'hidden',
-    ...SHADOWS.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   stopButtonGradient: {
     paddingVertical: SPACING.lg,

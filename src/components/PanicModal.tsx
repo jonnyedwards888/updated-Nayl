@@ -41,110 +41,124 @@ const SPACING = {
   xxxl: 64,
 };
 
-// Ultra-fast, simple typewriter component with continuous vibration and cycling messages
+// Ultra-simple typewriter component
 const TypewriterText: React.FC<{ 
   messages: string[]; 
   speed?: number; 
   onComplete?: () => void;
-  isVisible: boolean; // Add visibility prop to control animation
+  isVisible: boolean;
 }> = ({ 
   messages, 
-  speed = 2, // Ultra-fast typing (3ms per character)
+  speed = 50,
   onComplete,
   isVisible
 }) => {
   const [displayedText, setDisplayedText] = useState('');
-  const currentMessageIndexRef = useRef(0);
-  const currentCharIndexRef = useRef(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isAnimatingRef = useRef(false);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasStartedRef = useRef(false);
 
-  // Single useEffect to handle everything sequentially
+  // Handle visibility changes
   useEffect(() => {
     if (!isVisible) {
-      // Stop animation if not visible
-      isAnimatingRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      // Stop typing when not visible
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
+      hasStartedRef.current = false;
       return;
     }
 
-    console.log('🚀 TypewriterText starting sequence');
-    isAnimatingRef.current = true;
-    currentMessageIndexRef.current = 0;
-    currentCharIndexRef.current = 0;
+    // Only start if we haven't started yet
+    if (hasStartedRef.current) {
+      return;
+    }
+
+    hasStartedRef.current = true;
+
+    // Reset state
+    setCurrentMessageIndex(0);
+    setCurrentCharIndex(0);
     setDisplayedText('');
-    
-    const startTyping = () => {
-      if (!isAnimatingRef.current) return;
-      
-      const messageIndex = currentMessageIndexRef.current;
-      const message = messages[messageIndex];
-      
-      if (!message) {
-        console.log('✅ All messages complete');
-        onComplete?.();
-        return;
-      }
 
-      console.log(`📝 Starting message ${messageIndex}:`, message);
-      
-      const typeNextCharacter = () => {
-        if (!isAnimatingRef.current) return;
-        
-        const charIndex = currentCharIndexRef.current;
-        if (charIndex < message.length) {
-          const newText = message.slice(0, charIndex + 1);
-          setDisplayedText(newText);
-          
-          // Vibrate only while typing each character
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          
-          currentCharIndexRef.current = charIndex + 1;
-          
-          // Schedule next character
-          timeoutRef.current = setTimeout(typeNextCharacter, speed);
-        } else {
-          // Message complete
-          console.log(`🏁 Message ${messageIndex} complete`);
-          
-          // Wait 1 second, then move to next message
-          timeoutRef.current = setTimeout(() => {
-            if (isAnimatingRef.current) {
-              console.log(`⏰ Moving to next message: ${messageIndex + 1}`);
-              currentMessageIndexRef.current = messageIndex + 1;
-              currentCharIndexRef.current = 0;
-              startTyping(); // Recursive call to next message
+         // Start typing
+     const typeNextCharacter = () => {
+       // Get current state values to avoid stale closure
+       setCurrentMessageIndex(prevMessageIndex => {
+         setCurrentCharIndex(prevCharIndex => {
+           const message = messages[prevMessageIndex];
+           
+           if (!message) {
+             // No more messages
+             if (intervalRef.current) {
+               clearInterval(intervalRef.current);
+               intervalRef.current = null;
+             }
+             onComplete?.();
+             return prevCharIndex;
+           }
+
+           if (prevCharIndex < message.length) {
+             // Type next character
+             const newText = message.slice(0, prevCharIndex + 1);
+             setDisplayedText(newText);
+             
+             // Vibrate on every character
+             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+             
+             return prevCharIndex + 1;
+                       } else {
+              // Message complete, pause interval and move to next
+              if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+              }
+              
+                             // Check if this is the last message
+               if (prevMessageIndex === messages.length - 1) {
+                 // Last message complete, defer onComplete to avoid setState during render
+                 setTimeout(() => {
+                   onComplete?.();
+                 }, 0);
+                 return 0;
+               }
+              
+              setTimeout(() => {
+                setCurrentCharIndex(0);
+                setDisplayedText('');
+                setCurrentMessageIndex(prev => prev + 1);
+                
+                // Restart interval for next message
+                intervalRef.current = setInterval(typeNextCharacter, speed);
+              }, 1000);
+              return 0;
             }
-          }, 1000);
-        }
-      };
+         });
+         return prevMessageIndex;
+       });
+     };
 
-      typeNextCharacter();
-    };
+    // Start interval
+    intervalRef.current = setInterval(typeNextCharacter, speed);
 
-    startTyping();
-
-    // Cleanup function
+    // Cleanup
     return () => {
-      console.log('🧹 TypewriterText cleanup');
-      isAnimatingRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isVisible]); // Only depend on isVisible to prevent infinite loops
+  }, [isVisible]);
 
-  return (
-    <View style={styles.typewriterContainer}>
-      <Text style={styles.warningText}>
-        {displayedText}
-      </Text>
-    </View>
-  );
+     return (
+     <View style={styles.typewriterContainer}>
+       <Text style={styles.warningText}>
+         {displayedText}
+       </Text>
+     </View>
+   );
 };
 
 const PanicModal: React.FC = () => {
@@ -261,7 +275,7 @@ const PanicModal: React.FC = () => {
                 "IS THE SHORT\nRELIEF WORTH\nTHE SHAME?",
                 "YOU CAN DO THIS,\nYOU ARE NOT\nALONE."
               ]}
-              speed={3} // Ultra-fast typing (3ms per character)
+                             speed={15} // Fast 15ms per character for snappy premium feel
               onComplete={handleTypewriterComplete}
               isVisible={showTypewriter}
             />

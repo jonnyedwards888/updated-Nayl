@@ -265,7 +265,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   selectedDayButton: {
-    backgroundColor: COLORS.primaryAccent,
+    backgroundColor: '#1A1A2E', // Premium dark color instead of green
+    borderWidth: 2,
+    borderColor: '#FFFFFF', // White border for premium feel
     ...SHADOWS.card,
   },
   todayButton: {
@@ -282,7 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedDayText: {
-    color: COLORS.primaryText,
+    color: '#FFFFFF', // White text for contrast with dark background
     fontWeight: '700',
   },
   todayText: {

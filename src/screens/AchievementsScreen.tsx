@@ -239,11 +239,21 @@ const createStyles = (themeColors: any) => StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 4,
-    shadowColor: COLORS.primaryAccent,
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  progressGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle glow effect
+    opacity: 0.5,
   },
   progressText: {
     ...TYPOGRAPHY.caption,
@@ -585,15 +595,20 @@ const AchievementsScreen: React.FC = () => {
         </View>
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <View 
+            <LinearGradient
+              colors={['#00D4FF', '#0099FF', '#0066FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={[
                 styles.progressFill, 
                 { 
-                  width: `${(unlockedCount / achievements.length) * 100}%`,
-                  backgroundColor: COLORS.primaryAccent
+                  width: `${(unlockedCount / achievements.length) * 100}%`
                 }
               ]} 
-            />
+            >
+              {/* Inner glow effect */}
+              <View style={styles.progressGlow} />
+            </LinearGradient>
           </View>
           <Text style={styles.progressText}>
             {unlockedCount}/{achievements.length} achievements earned

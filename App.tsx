@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
@@ -12,6 +13,7 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { StreakProvider } from './src/context/StreakContext';
 import { PanicModalProvider, usePanicModal } from './src/context/PanicModalContext';
 import { TipsModalProvider } from './src/context/TipsModalContext';
+import { MeditationProvider, useMeditation } from './src/context/MeditationContext';
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -22,6 +24,7 @@ import AchievementsScreen from './src/screens/AchievementsScreen';
 import ReasonsScreen from './src/screens/ReasonsScreen';
 import TriggerHistoryScreen from './src/screens/TriggerHistoryScreen';
 import RelaxationSoundScreen from './src/screens/RelaxationSoundScreen';
+import LearningScreen from './src/screens/LearningScreen';
 import OnboardingQuestionnaireScreen from './src/screens/OnboardingQuestionnaireScreen';
 import EditStreakScreen from './src/screens/EditStreakScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
@@ -34,6 +37,14 @@ import { COLORS } from './src/constants/theme';
 import hapticService, { HapticType, HapticIntensity } from './src/services/hapticService';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+// Simple function to control meditation state
+export const setMeditationActive = (active: boolean) => {
+  // This will be called from MeditationScreen
+  console.log(`🧘 Setting meditation active: ${active}`);
+  // We'll use a ref to communicate with the parent component
+};
 
 // Tab icon sizes and colors
 const TAB_ICON_SIZE = 24;
@@ -43,48 +54,46 @@ const ICON_FILL_INACTIVE = '#94A3B8';
 // Navigation stacks
 function HomeStack() {
   return (
-    <Tab.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { display: 'none' }
       }}
     >
-      <Tab.Screen name="HomeMain" component={HomeScreen} />
-      <Tab.Screen name="OnboardingQuestionnaire" component={OnboardingQuestionnaireScreen} />
-      <Tab.Screen name="EditStreak" component={EditStreakScreen} />
-      <Tab.Screen name="Analytics" component={AnalyticsScreen} />
-    </Tab.Navigator>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="OnboardingQuestionnaire" component={OnboardingQuestionnaireScreen} />
+      <Stack.Screen name="EditStreak" component={EditStreakScreen} />
+      <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+      <Stack.Screen name="Meditation" component={MeditationScreen} />
+    </Stack.Navigator>
   );
 }
 
 function ProfileStack() {
   return (
-    <Tab.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { display: 'none' }
       }}
     >
-      <Tab.Screen name="ProfileMain" component={ProfileScreen} />
-      <Tab.Screen name="Reasons" component={ReasonsScreen} />
-      <Tab.Screen name="TriggerHistory" component={TriggerHistoryScreen} />
-    </Tab.Navigator>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+      <Stack.Screen name="Reasons" component={ReasonsScreen} />
+      <Stack.Screen name="TriggerHistory" component={TriggerHistoryScreen} />
+    </Stack.Navigator>
   );
 }
 
 function LibraryStack() {
   return (
-    <Tab.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { display: 'none' }
       }}
     >
-      <Tab.Screen name="LibraryMain" component={LibraryScreen} />
-      <Tab.Screen name="Meditation" component={MeditationScreen} />
-      <Tab.Screen name="Achievements" component={AchievementsScreen} />
-      <Tab.Screen name="RelaxationSound" component={RelaxationSoundScreen} />
-    </Tab.Navigator>
+      <Stack.Screen name="LibraryMain" component={LibraryScreen} />
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="RelaxationSound" component={RelaxationSoundScreen} />
+      <Stack.Screen name="Learning" component={LearningScreen} />
+    </Stack.Navigator>
   );
 }
 
@@ -92,6 +101,7 @@ function LibraryStack() {
 function AppContent() {
   const { colors } = useTheme();
   const { isPanicModalVisible } = usePanicModal();
+  const { isMeditationActive } = useMeditation();
   
   return (
     <NavigationContainer>
@@ -106,7 +116,7 @@ function AppContent() {
             height: 80,
             paddingBottom: 6, // Reduced from 10 to move content higher
             paddingTop: 6, // Reduced from 10 to move content higher
-            display: isPanicModalVisible ? 'none' : 'flex', // Hide tab bar when panic modal is visible
+            display: (isPanicModalVisible || isMeditationActive) ? 'none' : 'flex', // Hide tab bar when panic modal is visible or during meditation
             
             // Remove all shadows and borders
             shadowColor: 'transparent',
@@ -288,7 +298,7 @@ function AppContent() {
         {/* Library Tab - Book icon */}
         <Tab.Screen 
           name="Library" 
-          component={LibraryScreen}
+          component={LibraryStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
               <View style={{
@@ -319,7 +329,7 @@ function AppContent() {
         {/* Profile Tab - User icon */}
         <Tab.Screen 
           name="Profile" 
-          component={ProfileScreen}
+          component={ProfileStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
               <View style={{
@@ -415,9 +425,11 @@ export default function App() {
         <StreakProvider>
           <PanicModalProvider>
             <TipsModalProvider>
-              <PerformanceMeasureView screenName="App">
-                <ThemeAwareAppContent />
-              </PerformanceMeasureView>
+              <MeditationProvider>
+                <PerformanceMeasureView screenName="App">
+                  <AppContent />
+                </PerformanceMeasureView>
+              </MeditationProvider>
             </TipsModalProvider>
           </PanicModalProvider>
         </StreakProvider>

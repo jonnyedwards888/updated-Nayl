@@ -8,8 +8,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
-  Animated,
-  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -257,11 +255,14 @@ const AnalyticsScreen: React.FC = () => {
                       <Text style={[styles.benefitTitle, { color: colors.primaryText }]}>{benefit.title}</Text>
                       <Text style={[styles.benefitDescription, { color: colors.secondaryText }]}>{benefit.description}</Text>
                       <View style={[styles.benefitProgressBg, { backgroundColor: colors.mutedText }]}>
-                        <View 
+                        <LinearGradient
+                          colors={['#00D4FF', '#0099FF', '#0066FF']}
                           style={[
-                            styles.benefitProgressFill, 
-                            { backgroundColor: benefit.color, width: `${benefit.progress}%` }
-                          ]} 
+                            styles.benefitProgressFill,
+                            { width: `${benefit.progress}%` }
+                          ]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
                         />
                       </View>
                     </View>
@@ -291,77 +292,45 @@ const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: numb
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
-  // Track if we've already animated this progress value
-  const hasAnimated = React.useRef(false);
-  const [displayProgress, setDisplayProgress] = React.useState(0);
-  
-  // Animate progress when component mounts or progress changes
-  React.useEffect(() => {
-    // Only animate if we haven't animated this progress value yet
-    if (!hasAnimated.current) {
-      hasAnimated.current = true;
-      
-      // Start from 0 and animate to target progress
-      let startTime = Date.now();
-      const duration = 300; // 400ms animation - much quicker!
-      
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progressRatio = Math.min(elapsed / duration, 1);
-        
-        // Use easing function for smooth animation
-        const easedProgress = 1 - Math.pow(1 - progressRatio, 3); // Cubic ease-out
-        const currentProgress = easedProgress * progress;
-        
-        setDisplayProgress(currentProgress);
-        
-        if (progressRatio < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Animation complete - add haptic feedback
-          hapticService.trigger(HapticType.LIGHT_TAP, HapticIntensity.SUBTLE);
-        }
-      };
-      
-      requestAnimationFrame(animate);
-    }
-  }, [progress]); // Only depend on progress
-  
-  // Calculate stroke dash offset based on current display progress
-  const strokeDashoffset = circumference - (displayProgress / 100) * circumference;
+  // Calculate stroke dash offset based on progress
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <Svg width={size} height={size}>
-      <Defs>
-        <SvgLinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <Stop offset="0%" stopColor="#F8FAFC" />
-          <Stop offset="50%" stopColor="#E2E8F0" />
-          <Stop offset="100%" stopColor="#CBD5E1" />
-        </SvgLinearGradient>
-      </Defs>
-      
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke="rgba(255, 255, 255, 0.08)"
-        strokeWidth={strokeWidth}
-        fill="transparent"
-      />
-      
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke="url(#progressGradient)"
-        strokeWidth={strokeWidth}
-        fill="transparent"
-        strokeDasharray={circumference}
-        strokeDashoffset={strokeDashoffset}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-    </Svg>
+    <View>
+      <Svg width={size} height={size}>
+        <Defs>
+          <SvgLinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#00D4FF" />
+            <Stop offset="50%" stopColor="#0099FF" />
+            <Stop offset="100%" stopColor="#0066FF" />
+          </SvgLinearGradient>
+        </Defs>
+        
+        {/* Background circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255, 255, 255, 0.08)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+        />
+        
+        {/* Progress circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="url(#progressGradient)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+    </View>
   );
 };
 

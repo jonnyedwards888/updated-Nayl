@@ -41,8 +41,48 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
   const [newReason, setNewReason] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [modalAnimation] = useState(new Animated.Value(0));
   const textInputRef = useRef<TextInput>(null);
+  const starAnimations = useRef<Animated.Value[]>([]);
+  const starPositions = useRef<Array<{left: number, top: number}>>([]);
+  const modalStarPositions = useRef<Array<{left: number, top: number}>>([]);
+
+  // Initialize star animations and positions
+  useEffect(() => {
+    starAnimations.current = Array.from({ length: 50 }, () => new Animated.Value(0));
+    
+    // Generate stable star positions for main screen
+    starPositions.current = Array.from({ length: 50 }, () => ({
+      left: Math.random() * width,
+      top: Math.random() * height,
+    }));
+    
+    // Generate stable star positions for modal
+    modalStarPositions.current = Array.from({ length: 30 }, () => ({
+      left: Math.random() * width,
+      top: Math.random() * (height * 0.8),
+    }));
+    
+    // Start star animations
+    starAnimations.current.forEach((anim, index) => {
+      const delay = Math.random() * 3000;
+      setTimeout(() => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+      }, delay);
+    });
+  }, []);
 
   // Load reasons on mount (for now, using local storage simulation)
   useEffect(() => {
@@ -61,27 +101,15 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
   const showModal = () => {
     setIsModalVisible(true);
     setNewReason('');
-    Animated.timing(modalAnimation, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      // Focus the text input after animation completes
-      setTimeout(() => {
-        textInputRef.current?.focus();
-      }, 350);
-    });
+    // Focus the text input after a short delay
+    setTimeout(() => {
+      textInputRef.current?.focus();
+    }, 100);
   };
 
   const hideModal = () => {
-    Animated.timing(modalAnimation, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsModalVisible(false);
-      setNewReason('');
-    });
+    setIsModalVisible(false);
+    setNewReason('');
   };
 
   const addReason = async () => {
@@ -98,8 +126,8 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
       setNewReason('');
       
       hideModal();
-      Alert.alert('Success', 'Reason added successfully!');
-    } catch (error) {
+       // Remove the success alert
+     } catch (error) {
       console.error('Error adding reason:', error);
       Alert.alert('Error', 'Failed to add reason. Please try again.');
     } finally {
@@ -149,6 +177,23 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
         colors={COLORS.backgroundGradient}
         style={styles.backgroundContainer}
       />
+      
+      {/* Animated Starfield */}
+      <View style={styles.starfield}>
+        {starPositions.current?.map((position, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.star,
+              {
+                left: position?.left || 0,
+                top: position?.top || 0,
+                opacity: starAnimations.current[index] || 0.8,
+              },
+            ]}
+          />
+        ))}
+      </View>
 
       {/* Header */}
       <View style={styles.header}>
@@ -194,7 +239,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
                   <View style={styles.reasonContent}>
                     <Text style={styles.reasonText}>{reason.text}</Text>
                     <Text style={styles.reasonDate}>
-                      Added {formatDate(reason.createdAt)}
+                      Added {formatDate(reason.created_at)}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -222,114 +267,120 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Enhanced Add Reason Modal */}
+      {/* Simple, Bulletproof Modal */}
       <Modal
         visible={isModalVisible}
-        transparent={true}
-        animationType="none"
+        transparent={false}
+        animationType="slide"
         onRequestClose={hideModal}
-        statusBarTranslucent={true}
+        statusBarTranslucent={false}
       >
-        <StatusBar barStyle="light-content" backgroundColor="rgba(0, 0, 0, 0.8)" />
-        <Animated.View 
-          style={[
-            styles.modalOverlay,
-            {
-              opacity: modalAnimation,
-            }
-          ]}
-        >
-          <TouchableOpacity 
-            style={styles.modalBackdrop} 
-            onPress={hideModal}
-            activeOpacity={1}
+        <SafeAreaView style={styles.simpleModalContainer}>
+          {/* Modal Background with Stars */}
+          <LinearGradient
+            colors={COLORS.backgroundGradient}
+            style={styles.modalBackgroundContainer}
           />
-          <Animated.View 
-            style={[
-              styles.modalContent,
-              {
-                transform: [{
-                  translateY: modalAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [height, 0],
-                  }),
-                }],
-              }
-            ]}
-          >
-            <KeyboardAvoidingView 
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.modalKeyboardView}
+          
+          {/* Modal Starfield */}
+          <View style={styles.modalStarfield}>
+            {modalStarPositions.current?.map((position, index) => (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.modalStar,
+                  {
+                    left: position?.left || 0,
+                    top: position?.top || 0,
+                    opacity: starAnimations.current[index] || 0.8,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+
+          {/* Modal Header */}
+          <View style={styles.simpleModalHeader}>
+            <TouchableOpacity
+              style={styles.simpleModalBackButton}
+              onPress={hideModal}
             >
-              {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <View style={styles.modalHeaderContent}>
-                  <Text style={styles.modalTitle}>Add New Reason</Text>
-                  <TouchableOpacity
-                    style={styles.modalCloseButton}
-                    onPress={hideModal}
-                  >
-                    <Ionicons name="close" size={28} color={COLORS.primaryText} />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.modalHeaderDivider} />
-              </View>
+              <Ionicons name="arrow-back" size={24} color={COLORS.primaryText} />
+            </TouchableOpacity>
+            <Text style={[styles.simpleModalTitle, { color: COLORS.primaryText }]}>Add New Reason</Text>
+            <View style={styles.simpleModalSpacer} />
+          </View>
 
-              {/* Modal Body */}
-              <View style={styles.modalBody}>
-                <Text style={styles.modalSubtitle}>
-                  Why do you want to stop biting your nails?
+          {/* Modal Body with KeyboardAvoidingView */}
+          <KeyboardAvoidingView 
+            style={styles.simpleModalBody}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <Text style={[styles.simpleModalSubtitle, { color: COLORS.primaryText }]}>
+              Why do you want to stop biting your nails?
+            </Text>
+            
+            {/* TextInput */}
+            <View style={styles.simpleModalTextInputContainer}>
+              <TextInput
+                ref={textInputRef}
+                style={styles.simpleModalTextInput}
+                placeholder="Enter your reason here..."
+                placeholderTextColor={COLORS.mutedText}
+                value={newReason}
+                onChangeText={(text) => {
+                  setNewReason(text);
+                }}
+                multiline
+                numberOfLines={6}
+                maxLength={200}
+                textAlignVertical="top"
+                autoFocus={false}
+                blurOnSubmit={false}
+                returnKeyType="done"
+                enablesReturnKeyAutomatically={true}
+                selectionColor={COLORS.primaryText}
+                cursorColor={COLORS.primaryText}
+                keyboardType="default"
+                autoCapitalize="sentences"
+                autoCorrect={true}
+                spellCheck={true}
+                editable={true}
+                onFocus={() => {}}
+                onBlur={() => {}}
+                onSelectionChange={() => {}}
+              />
+            </View>
+            
+            {/* Character Count */}
+            <Text style={[styles.simpleModalCharacterCount, { color: COLORS.secondaryText }]}>
+              {newReason.length}/200
+            </Text>
+            
+            {/* Add Reason Button - Visible Above Keyboard */}
+            <TouchableOpacity
+              style={[
+                styles.simpleModalAddButtonInline,
+                newReason.trim() && styles.simpleModalAddButtonActive
+              ]}
+              onPress={addReason}
+              disabled={!newReason.trim() || isAdding}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#00D4FF', '#0099FF', '#0066FF']}
+                style={styles.simpleModalAddButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.simpleModalAddText}>
+                  {isAdding ? 'Adding...' : 'Add Reason'}
                 </Text>
-                <View style={styles.textInputContainer}>
-                  <TextInput
-                    ref={textInputRef}
-                    style={styles.modalTextInput}
-                    placeholder="Enter your reason here..."
-                    placeholderTextColor={COLORS.mutedText}
-                    value={newReason}
-                    onChangeText={setNewReason}
-                    multiline
-                    numberOfLines={6}
-                    maxLength={200}
-                    textAlignVertical="top"
-                    autoFocus={false}
-                    blurOnSubmit={false}
-                    returnKeyType="done"
-                    enablesReturnKeyAutomatically={true}
-                  />
-                  <View style={styles.characterCountContainer}>
-                    <Text style={styles.modalCharacterCount}>
-                      {newReason.length}/200
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Modal Footer */}
-              <View style={styles.modalFooter}>
-                <TouchableOpacity
-                  style={styles.modalCancelButton}
-                  onPress={hideModal}
-                >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.modalAddButton,
-                    !newReason.trim() && styles.modalAddButtonDisabled
-                  ]}
-                  onPress={addReason}
-                  disabled={!newReason.trim() || isAdding}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.modalAddText}>
-                    {isAdding ? 'Adding...' : 'Add Reason'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </Animated.View>
-        </Animated.View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
@@ -338,7 +389,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primaryBackground,
+    backgroundColor: 'transparent', // Make transparent to show gradient background
   },
   backgroundContainer: {
     position: 'absolute',
@@ -346,6 +397,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: -2, // Ensure it's behind the starfield
+  },
+  starfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1, // Ensure it's behind other content but above background
+  },
+  star: {
+    position: 'absolute',
+    width: 2,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    opacity: 0.8,
   },
   header: {
     flexDirection: 'row',
@@ -354,12 +422,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     zIndex: 10,
+    backgroundColor: 'transparent', // Remove black background to blend with theme
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.card,
@@ -379,7 +448,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.card,
@@ -387,6 +456,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
+    backgroundColor: 'transparent', // Make transparent to show gradient background
   },
   sectionTitle: {
     ...TYPOGRAPHY.headingMedium,
@@ -409,10 +479,12 @@ const styles = StyleSheet.create({
   },
   reasonCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)', // Slightly more visible
     borderRadius: SPACING.md,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle border
     ...SHADOWS.card,
   },
   reasonContent: {
@@ -440,10 +512,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   motivationCard: {
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(255, 215, 0, 0.15)', // Slightly more visible gold
     borderRadius: SPACING.md,
     padding: SPACING.lg,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)', // Subtle gold border
     ...SHADOWS.card,
   },
   motivationTitle: {
@@ -464,6 +538,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    zIndex: 9999,
   },
   modalBackdrop: {
     position: 'absolute',
@@ -471,15 +546,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: 9998,
   },
   modalContent: {
     width: '100%',
-    backgroundColor: COLORS.secondaryBackground,
+    backgroundColor: '#1A1A2E',
     borderTopLeftRadius: SPACING.lg,
     borderTopRightRadius: SPACING.lg,
     overflow: 'hidden',
     maxHeight: height * 0.8,
-    ...SHADOWS.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 12,
+    zIndex: 10000,
   },
   modalKeyboardView: {
     flex: 1,
@@ -487,7 +568,9 @@ const styles = StyleSheet.create({
   modalHeader: {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    backgroundColor: COLORS.cardBackground,
+    backgroundColor: '#2D2D44',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   modalHeaderContent: {
     flexDirection: 'row',
@@ -501,7 +584,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...TYPOGRAPHY.headingMedium,
-    color: COLORS.primaryText,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   modalCloseButton: {
@@ -515,25 +598,31 @@ const styles = StyleSheet.create({
   modalBody: {
     padding: SPACING.lg,
     flex: 1,
+    backgroundColor: '#1A1A2E',
   },
   modalSubtitle: {
     ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.primaryText,
+    color: '#FFFFFF',
     marginBottom: SPACING.lg,
     textAlign: 'center',
     fontWeight: '500',
   },
   textInputContainer: {
     position: 'relative',
-    backgroundColor: COLORS.primaryBackground,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: SPACING.md,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    ...SHADOWS.card,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    marginBottom: SPACING.lg,
+    minHeight: 140,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   modalTextInput: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.primaryText,
+    color: '#FFFFFF',
     minHeight: 120,
     textAlignVertical: 'top',
     paddingVertical: SPACING.lg,
@@ -542,6 +631,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 26,
     fontWeight: '400',
+    textAlign: 'left',
+    backgroundColor: 'transparent',
+    includeFontPadding: false,
   },
   characterCountContainer: {
     position: 'absolute',
@@ -563,7 +655,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: COLORS.cardBackground,
+    backgroundColor: '#2D2D44',
   },
   modalCancelButton: {
     flex: 1,
@@ -597,6 +689,198 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.buttonText,
     color: COLORS.primaryBackground,
     fontWeight: '700',
+  },
+  debugContainer: {
+    padding: SPACING.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  debugText: {
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.secondaryText,
+    textAlign: 'center',
+  },
+  simpleModalContainer: {
+    flex: 1,
+    backgroundColor: 'transparent', // Make transparent to show gradient background
+  },
+  simpleModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.secondaryBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  simpleModalBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  simpleModalTitle: {
+    ...TYPOGRAPHY.headingMedium,
+    color: COLORS.primaryText,
+    fontWeight: '700',
+    flex: 1,
+    textAlign: 'center',
+  },
+  simpleModalSpacer: {
+    width: 40,
+  },
+  simpleModalBody: {
+    padding: SPACING.lg,
+    flex: 1,
+    backgroundColor: 'transparent', // Make transparent to show gradient background
+  },
+  simpleModalSubtitle: {
+    ...TYPOGRAPHY.bodyLarge,
+    color: COLORS.primaryText,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  simpleModalTextInputContainer: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: SPACING.md,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    marginBottom: SPACING.lg,
+    minHeight: 140,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  simpleModalTextInput: {
+    color: COLORS.primaryText,
+    minHeight: 120,
+    textAlignVertical: 'top',
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xl,
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '400',
+    textAlign: 'left',
+    backgroundColor: 'transparent',
+    includeFontPadding: false,
+  },
+  simpleModalCharacterCount: {
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.secondaryText,
+    fontWeight: '500',
+    textAlign: 'right',
+    marginTop: SPACING.sm,
+  },
+  simpleModalAddButtonInline: {
+    height: 48, // Fixed height instead of flex
+    width: '60%', // Make button narrower instead of full width
+    alignSelf: 'center', // Center the button
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: SPACING.md,
+    marginTop: SPACING.md,
+    overflow: 'hidden', // For gradient
+  },
+  simpleModalAddButtonGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: SPACING.md,
+  },
+  simpleModalAddText: {
+    ...TYPOGRAPHY.buttonText,
+    color: COLORS.primaryBackground,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  simpleModalDebugContainer: {
+    padding: SPACING.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  simpleModalDebugText: {
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.secondaryText,
+    textAlign: 'center',
+  },
+  simpleModalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: SPACING.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#2D2D44',
+    zIndex: 1000,
+    elevation: 10,
+  },
+  simpleModalCancelButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: SPACING.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    marginRight: SPACING.sm,
+    alignItems: 'center',
+  },
+  simpleModalCancelText: {
+    ...TYPOGRAPHY.buttonText,
+    color: COLORS.primaryText,
+  },
+  simpleModalAddButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: SPACING.md,
+    backgroundColor: COLORS.primaryAccent,
+    ...SHADOWS.card,
+    alignItems: 'center',
+  },
+  simpleModalAddButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    opacity: 0.5,
+  },
+  simpleModalAddButtonActive: {
+    shadowColor: COLORS.primaryAccent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modalBackgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1, // Ensure it's behind other content
+  },
+  modalStarfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1, // Ensure it's behind other content
+  },
+  modalStar: {
+    position: 'absolute',
+    width: 2,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    opacity: 0.8,
   },
 });
 

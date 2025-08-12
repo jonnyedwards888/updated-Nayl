@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { body, bodySmall, caption, buttonText } from '../constants/typography';
+import { body, caption } from '../constants/typography';
 import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useMeditation } from '../context/MeditationContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,20 +33,42 @@ const SPACING = {
 
 type LibraryStackParamList = {
   LibraryMain: undefined;
-  Meditation: undefined;
   Achievements: undefined;
   RelaxationSound: { soundType: string };
+  Learning: undefined;
 };
 
 interface LibraryScreenProps {
   navigation?: NavigationProp<LibraryStackParamList>;
 }
 
-const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation: propNavigation }) => {
-  const { colors } = useThemeGuaranteed();
+const LibraryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
-  const starfieldAnimation = useRef(new Animated.Value(0)).current;
+  const { colors } = useThemeGuaranteed();
+  const { isMeditationActive } = useMeditation();
   
+  // Animation values for button press effects
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  
+  const handleButtonPress = (callback: () => void) => {
+    // Scale down animation
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    // Execute the callback
+    callback();
+  };
+
   // Star positions for randomized animation
   const [starPositions, setStarPositions] = useState(() => 
     Array.from({ length: 50 }, () => ({
@@ -152,110 +175,85 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation: propNavigatio
         </TouchableOpacity>
       </View>
 
-      {/* Category Icons on Mountain Image */}
-      <View style={styles.categoriesOverlay}>
-        <View style={styles.categoryRow}>
-          <TouchableOpacity style={styles.categoryButton}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: colors.secondaryBackground }]}>
-              <Ionicons name="fitness" size={24} color={colors.primaryText} />
-            </View>
-            <Text style={[styles.categoryLabel, { color: colors.primaryText }]}>Breathing Exercise</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.categoryButton}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: colors.secondaryBackground }]}>
-              <Ionicons name="chatbubble-ellipses" size={24} color={colors.primaryText} />
-            </View>
-            <Text style={[styles.categoryLabel, { color: colors.primaryText }]}>Melius AI Therapist</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.categoryButton}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: colors.secondaryBackground }]}>
-              <Ionicons name="leaf" size={24} color={colors.primaryText} />
-            </View>
-            <Text style={[styles.categoryLabel, { color: colors.primaryText }]}>Meditate</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.categoryButton}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: colors.secondaryBackground }]}>
-              <Ionicons name="document-text" size={24} color={colors.primaryText} />
-            </View>
-            <Text style={[styles.categoryLabel, { color: colors.primaryText }]}>Porn Research</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Content Buttons */}
-        <View style={styles.contentButtonsContainer}>
-          <View style={styles.contentButtonRow}>
-            <TouchableOpacity style={styles.contentButton}>
+        {/* Four Main Buttons */}
+        <View style={styles.categoriesContainer}>
+          <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
+            <LinearGradient
+              colors={['#7C2D12', '#9A3412', '#C2410C', '#EA580C']}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Premium texture overlay */}
+              <View style={styles.buttonTextureOverlay} />
+              
+              {/* Subtle inner highlight */}
+              <View style={styles.buttonInnerHighlight} />
+              
+              <View style={styles.categoryButtonContent}>
+                <Text style={styles.categoryLabel}>Articles</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
               <LinearGradient
-                colors={['#FF6B35', '#FF8E53', '#FF6B35', '#FF4A1C']}
-                style={styles.contentButtonGradient}
+                colors={['#1E3A8A', '#1E40AF', '#3B82F6', '#60A5FA']}
+                style={styles.categoryButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                locations={[0, 0.3, 0.7, 1]}
               >
-                <View style={styles.contentButtonInner}>
-                  <Ionicons name="document-text" size={22} color={colors.primaryText} />
-                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Articles</Text>
+                {/* Premium texture overlay */}
+                <View style={styles.buttonTextureOverlay} />
+                
+                {/* Subtle inner highlight */}
+                <View style={styles.buttonInnerHighlight} />
+                
+                <View style={styles.categoryButtonContent}>
+                  <Text style={styles.categoryLabel}>Leaderboard</Text>
                 </View>
-                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(255, 107, 53, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.contentButton}>
-              <LinearGradient
-                colors={['#8B5CF6', '#A78BFA', '#8B5CF6', '#7C3AED']}
-                style={styles.contentButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                locations={[0, 0.3, 0.7, 1]}
-              >
-                <View style={styles.contentButtonInner}>
-                  <Ionicons name="trophy" size={22} color={colors.primaryText} />
-                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Leaderboard</Text>
-                </View>
-                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Learning'))}>
+            <LinearGradient
+              colors={['#064E3B', '#065F46', '#047857', '#10B981']}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Premium texture overlay */}
+              <View style={styles.buttonTextureOverlay} />
+              
+              {/* Subtle inner highlight */}
+              <View style={styles.buttonInnerHighlight} />
+              
+              <View style={styles.categoryButtonContent}>
+                <Text style={styles.categoryLabel}>Learn</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
 
-          <View style={styles.contentButtonRow}>
-            <TouchableOpacity style={styles.contentButton}>
+                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
               <LinearGradient
-                colors={['#10B981', '#34D399', '#10B981', '#059669']}
-                style={styles.contentButtonGradient}
+                colors={['#78350F', '#92400E', '#B45309', '#F59E0B']}
+                style={styles.categoryButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                locations={[0, 0.3, 0.7, 1]}
               >
-                <View style={styles.contentButtonInner}>
-                  <Ionicons name="bar-chart" size={22} color={colors.primaryText} />
-                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Learn</Text>
+                {/* Premium texture overlay */}
+                <View style={styles.buttonTextureOverlay} />
+                
+                {/* Subtle inner highlight */}
+                <View style={styles.buttonInnerHighlight} />
+                
+                <View style={styles.categoryButtonContent}>
+                  <Text style={styles.categoryLabel}>Wellness</Text>
                 </View>
-                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]} />
               </LinearGradient>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.contentButton}>
-              <LinearGradient
-                colors={['#F59E0B', '#FBBF24', '#F59E0B', '#D97706']}
-                style={styles.contentButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                locations={[0, 0.3, 0.7, 1]}
-              >
-                <View style={styles.contentButtonInner}>
-                  <Ionicons name="heart" size={22} color={colors.primaryText} />
-                  <Text style={[styles.contentButtonText, { color: colors.primaryText }]}>Wellness</Text>
-                </View>
-                <View style={[styles.contentButtonGlow, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Content Cards */}
@@ -419,112 +417,12 @@ const styles = StyleSheet.create({
     right: 0,
     height: '50%',
   },
-  categoriesOverlay: {
-    position: 'absolute',
-    top: height * 0.18,
-    left: 0,
-    right: 0,
-    zIndex: 5,
-    paddingHorizontal: SPACING.lg,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: SPACING.lg,
-  },
-  categoryButton: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: SPACING.xs,
-  },
-  categoryIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.sm,
-    ...SHADOWS.card,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  categoryLabel: {
-    ...bodySmall,
-    color: COLORS.primaryText,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
-    paddingTop: height * 0.26,
+    paddingTop: height * 0.18, // Reduced from 0.26 to reduce empty space
   },
-  contentButtonsContainer: {
-    marginBottom: SPACING.xl,
-    paddingHorizontal: SPACING.xs,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: SPACING.lg,
-    paddingVertical: SPACING.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  contentButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.md + 4,
-    gap: SPACING.md,
-  },
-  contentButton: {
-    flex: 1,
-    marginHorizontal: SPACING.xs,
-    borderRadius: SPACING.lg,
-    overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  contentButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.lg + 4,
-    paddingHorizontal: SPACING.lg + 8,
-    borderRadius: SPACING.lg,
-    position: 'relative',
-  },
-  contentButtonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-  },
-  contentButtonText: {
-    ...buttonText,
-    color: COLORS.primaryText,
-    fontSize: 16,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    letterSpacing: 0.5,
-  },
-  contentButtonGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: SPACING.lg,
-    opacity: 0.6,
-    zIndex: 1,
-  },
+
   contentCardsContainer: {
     marginBottom: SPACING.xl,
   },
@@ -602,7 +500,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   sectionSubtitle: {
-    ...bodySmall,
+    ...body,
     color: COLORS.secondaryText,
     marginBottom: SPACING.lg,
   },
@@ -635,7 +533,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   relaxationLabel: {
-    ...bodySmall,
+    ...body,
     color: COLORS.primaryText,
     textAlign: 'center',
   },
@@ -649,7 +547,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   leaderboardRank: {
-    ...bodySmall,
+    ...body,
     color: COLORS.primaryAccent,
     fontWeight: '600',
   },
@@ -694,6 +592,98 @@ const styles = StyleSheet.create({
     ...caption,
     color: '#000000',
     fontWeight: '600',
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xl,
+  },
+  categoryButton: {
+    width: '48%',
+    marginBottom: SPACING.lg,
+    borderRadius: SPACING.lg,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  categoryButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md + 4,
+    paddingHorizontal: SPACING.lg + 8,
+    borderRadius: SPACING.lg,
+    position: 'relative',
+  },
+  buttonTextureOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: SPACING.lg,
+    opacity: 0.9,
+    zIndex: 1,
+    // Enhanced micro-texture effect
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.6,
+    shadowRadius: 3,
+  },
+  buttonInnerHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: SPACING.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    zIndex: 2,
+    // Enhanced inner shadow for depth
+    shadowColor: 'rgba(0, 0, 0, 0.4)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buttonTextureLayer: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: SPACING.lg + 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    zIndex: -1,
+    // Subtle outer glow
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  categoryButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  categoryLabel: {
+    ...body,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    letterSpacing: 0.5,
   },
 });
 

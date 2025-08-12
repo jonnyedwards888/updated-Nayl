@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,14 @@ import {
   Dimensions,
   SafeAreaView,
   Animated,
+  Easing,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { useMeditation } from '../context/MeditationContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,9 +45,89 @@ const MeditationScreen: React.FC<MeditationScreenProps> = ({ navigation }) => {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [showContent, setShowContent] = useState(false);
   const videoRef = useRef<Video>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Premium opening animation values
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(30)).current;
+
+  // Use meditation context to control footer visibility
+  const { setIsMeditationActive } = useMeditation();
+
+  // Hide footer when meditation screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      // This will hide the footer when meditation screen is focused
+      console.log('🧘 Meditation screen focused - footer should be hidden');
+      
+      // Set meditation active to hide footer
+      setIsMeditationActive(true);
+      
+      // Premium opening animation sequence
+      const startOpeningAnimation = () => {
+        // Staggered animation sequence for premium feel
+        Animated.sequence([
+          // First: fade in background elements
+          Animated.timing(opacityAnim, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          // Then: scale and slide up content with bounce
+          Animated.parallel([
+            Animated.timing(scaleAnim, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.back(1.2)),
+              useNativeDriver: true,
+            }),
+            Animated.timing(translateYAnim, {
+              toValue: 0,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start(() => {
+          // Animation complete
+          console.log('✨ Premium opening animation complete');
+        });
+      };
+      
+      // Start animation after a brief delay for smooth transition
+      const animationTimer = setTimeout(startOpeningAnimation, 100);
+      
+      // Return cleanup function for when screen loses focus
+      return () => {
+        // This will show the footer when meditation screen loses focus
+        console.log('🧘 Meditation screen lost focus - footer should be shown');
+        
+        // Reset meditation state to show footer
+        setIsMeditationActive(false);
+        
+        // Clear animation timer
+        clearTimeout(animationTimer);
+      };
+    }, [setIsMeditationActive])
+  );
+
+  // Handle initial animation state when component mounts
+  useEffect(() => {
+    // Reset animation values to initial state
+    scaleAnim.setValue(0.8);
+    opacityAnim.setValue(0);
+    translateYAnim.setValue(30);
+    fadeAnim.setValue(0);
+  }, []);
 
   // Cycle through motivational quotes every 4 seconds
   useEffect(() => {
@@ -65,15 +148,7 @@ const MeditationScreen: React.FC<MeditationScreenProps> = ({ navigation }) => {
     console.log('Video loaded successfully');
     setIsVideoLoaded(true);
     setVideoError(null);
-    // Show content with smooth fade-in animation
-    setTimeout(() => {
-      setShowContent(true);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }, 100);
+    // Content is now controlled by the premium opening animation
   };
 
   const handleVideoError = (error: any) => {
@@ -118,13 +193,22 @@ const MeditationScreen: React.FC<MeditationScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* Content Container */}
-      <Animated.View style={[
-        styles.contentContainer,
-        { opacity: fadeAnim }
-      ]}>
-        {/* Textured Circular Shape - Like QUITTR's with gaps */}
-        <View style={styles.circularShape}>
+             {/* Content Container */}
+       <Animated.View style={[
+         styles.contentContainer,
+         { 
+           opacity: opacityAnim,
+           transform: [
+             { scale: scaleAnim },
+             { translateY: translateYAnim }
+           ]
+         }
+       ]}>
+         {/* Textured Circular Shape - Like QUITTR's with gaps */}
+         <Animated.View style={[
+           styles.circularShape,
+           { opacity: fadeAnim }
+         ]}>
           {/* Base layer - very transparent */}
           <LinearGradient
             colors={['rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.2)', 'rgba(0, 0, 0, 0.1)']}
@@ -154,7 +238,7 @@ const MeditationScreen: React.FC<MeditationScreenProps> = ({ navigation }) => {
               {motivationalQuotes[currentQuoteIndex]}
             </Text>
           </LinearGradient>
-        </View>
+        </Animated.View>
       </Animated.View>
 
       {/* Finish Button - Moved lower and styled like reference */}

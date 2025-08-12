@@ -219,7 +219,7 @@ const EditStreakScreen: React.FC<EditStreakScreenProps> = ({ navigation, route }
           >
             <Ionicons name="arrow-back" size={24} color={COLORS.primaryText} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Streak Start Date</Text>
+          <Text style={styles.headerTitle}>Edit Streak Date</Text>
           <TouchableOpacity
             style={styles.saveButton}
             onPress={() => handleConfirmDate()}

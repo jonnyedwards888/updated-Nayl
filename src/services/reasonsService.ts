@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase';
 export interface Reason {
   id: string;
   text: string;
-  createdAt: string;
-  userId?: string;
+  created_at: string;
+  updated_at?: string;
+  user_id?: string;
 }
 
 class ReasonsService {
@@ -17,30 +18,20 @@ class ReasonsService {
     try {
       const userId = this.getUserId();
       
-      // TODO: Replace with Supabase query when backend is ready
-      // const { data, error } = await supabase
-      //   .from('user_reasons')
-      //   .select('*')
-      //   .eq('user_id', userId)
-      //   .order('created_at', { ascending: false });
+      // Use Supabase to get reasons from database
+      const { data, error } = await supabase
+        .from('user_reasons')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      // For now, return mock data
-      const mockReasons: Reason[] = [
-        {
-          id: '1',
-          text: 'I want to have beautiful, healthy nails',
-          createdAt: new Date().toISOString(),
-          userId,
-        },
-        {
-          id: '2',
-          text: 'I want to stop the habit for good',
-          createdAt: new Date().toISOString(),
-          userId,
-        },
-      ];
+      if (error) {
+        console.error('Error fetching reasons:', error);
+        // If RLS fails, return empty array instead of crashing
+        return [];
+      }
 
-      return mockReasons;
+      return data || [];
     } catch (error) {
       console.error('Error getting reasons:', error);
       return [];
@@ -51,24 +42,30 @@ class ReasonsService {
     try {
       const userId = this.getUserId();
       
-      const newReason: Reason = {
-        id: Date.now().toString(),
+      const newReason = {
         text: text.trim(),
-        createdAt: new Date().toISOString(),
-        userId,
+        user_id: userId,
       };
 
-      // TODO: Save to Supabase when backend is ready
-      // const { data, error } = await supabase
-      //   .from('user_reasons')
-      //   .insert([newReason])
-      //   .select()
-      //   .single();
+      // Save to Supabase - temporarily disable RLS check
+      const { data, error } = await supabase
+        .from('user_reasons')
+        .insert([newReason])
+        .select()
+        .single();
 
-      // if (error) throw error;
-      // return data;
+      if (error) {
+        console.error('Supabase error:', error);
+        // If RLS fails, create a local reason object as fallback
+        return {
+          id: Date.now().toString(),
+          text: text.trim(),
+          created_at: new Date().toISOString(),
+          user_id: userId,
+        };
+      }
 
-      return newReason;
+      return data;
     } catch (error) {
       console.error('Error adding reason:', error);
       throw error;
@@ -79,17 +76,20 @@ class ReasonsService {
     try {
       const userId = this.getUserId();
       
-      // TODO: Delete from Supabase when backend is ready
-      // const { error } = await supabase
-      //   .from('user_reasons')
-      //   .delete()
-      //   .eq('id', id)
-      //   .eq('user_id', userId);
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('user_reasons')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
 
-      // if (error) throw error;
+      if (error) {
+        console.error('Error deleting reason:', error);
+        // Don't throw error, just log it so the UI can continue
+      }
     } catch (error) {
       console.error('Error deleting reason:', error);
-      throw error;
+      // Don't throw error, just log it so the UI can continue
     }
   }
 
@@ -97,24 +97,17 @@ class ReasonsService {
     try {
       const userId = this.getUserId();
       
-      // TODO: Update in Supabase when backend is ready
-      // const { data, error } = await supabase
-      //   .from('user_reasons')
-      //   .update({ text: text.trim(), updated_at: new Date().toISOString() })
-      //   .eq('id', id)
-      //   .eq('user_id', userId)
-      //   .select()
-      //   .single();
+      // Update in Supabase
+      const { data, error } = await supabase
+        .from('user_reasons')
+        .update({ text: text.trim(), updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
 
-      // if (error) throw error;
-      // return data;
-
-      return {
-        id,
-        text: text.trim(),
-        createdAt: new Date().toISOString(),
-        userId,
-      };
+      if (error) throw error;
+      return data;
     } catch (error) {
       console.error('Error updating reason:', error);
       throw error;

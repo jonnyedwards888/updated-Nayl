@@ -14,6 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { NavigationProp } from '@react-navigation/native';
 import profileService, { ProfileData } from '../services/profileService';
 import { COLORS, SHADOWS, TYPOGRAPHY, SPACING } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -23,8 +24,14 @@ import { PerformanceMeasureView } from '@shopify/react-native-performance';
 
 const { width, height } = Dimensions.get('window');
 
+type ProfileStackParamList = {
+  ProfileMain: undefined;
+  Reasons: undefined;
+  TriggerHistory: undefined;
+};
+
 interface ProfileScreenProps {
-  navigation: any;
+  navigation: NavigationProp<ProfileStackParamList>;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
@@ -336,7 +343,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 </View>
               )}
               <View style={styles.editIconContainer}>
-                <Ionicons name="camera" size={16} color={COLORS.primaryText} />
+                <Ionicons name="camera" size={16} color="#FFFFFF" />
               </View>
               {isLoading && (
                 <View style={styles.loadingOverlay}>
@@ -362,21 +369,44 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
           {/* Longest Streak Card */}
           <View style={styles.streakCard}>
-            <LinearGradient
-              colors={[
-                'rgba(242, 0, 255, 0.6)',      // Premium gold
-                'rgba(115, 22, 104, 0.5)',       // Rich orange       // Vibrant red-orange
-                'rgba(220, 20, 60, 0.5)'        // Crimson
-              ]}
-              style={styles.streakCardGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 2 }}
-            >
+            <View style={styles.streakCardGradient}>
+              {/* Base radial gradient for organic feel */}
+              <LinearGradient
+                colors={[
+                  'rgba(242, 0, 255, 0.95)',      // Vibrant magenta (higher opacity)
+                  'rgba(200, 20, 120, 0.9)',       // Deep magenta-pink (more vibrant)
+                  'rgba(160, 40, 80, 0.9)',        // Deeper magenta-red (more contrast)
+                  'rgba(220, 20, 60, 0.9)'         // Crimson (more vibrant)
+                ]}
+                style={styles.baseGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                locations={[0, 0.3, 0.7, 1]}
+              />
+              
+              {/* Overlapping radial elements for organic curves */}
+              <View style={styles.radialOverlay1} />
+              <View style={styles.radialOverlay2} />
+              
+              {/* Premium texture overlay with subtle ripples */}
+              <View style={styles.premiumOverlay} />
+              
+              {/* Enhanced inner glow effect */}
+              <View style={styles.innerGlow} />
+              
+              {/* Subtle border highlight */}
+              <View style={styles.borderHighlight} />
+              
+              {/* Additional premium texture layers */}
+              <View style={styles.textureLayer1} />
+              <View style={styles.textureLayer2} />
+              <View style={styles.rippleEffect} />
+              
               <View style={styles.streakCardContent}>
                 <View style={styles.trophyContainer}>
                   <Image 
                     source={require('../../assets/trophy-icon.png')} 
-                    style={{ width: 48, height: 48 }}
+                    style={{ width: 64, height: 64 }}
                     resizeMode="contain"
                   />
                 </View>
@@ -387,19 +417,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-            </LinearGradient>
+            </View>
           </View>
 
           {/* Stats Cards */}
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
-              <Ionicons name="calendar" size={24} color={COLORS.primaryAccent} />
+              <Ionicons name="flame" size={24} color={COLORS.primaryText} />
               <Text style={styles.statValue}>{profileData.consecutive_days}</Text>
               <Text style={styles.statLabel}>Consecutive Days</Text>
             </View>
             
             <View style={styles.statCard}>
-              <Ionicons name="time" size={24} color={COLORS.primaryAccent} />
+              <Ionicons name="calendar-outline" size={24} color={COLORS.primaryText} />
               <Text style={styles.statValue}>{profileData.total_days_logged_in}</Text>
               <Text style={styles.statLabel}>Total Days</Text>
             </View>
@@ -431,7 +461,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
            {/* Profile Options */}
            <View style={styles.optionsSection}>
-            <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('Journal')}>
+            <TouchableOpacity style={styles.optionItem}>
               <View style={styles.optionIconContainer}>
                 <Ionicons name="book-outline" size={20} color={COLORS.primaryText} />
               </View>
@@ -627,11 +657,11 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.primaryAccent,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.primaryBackground,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     ...SHADOWS.card,
   },
   loadingOverlay: {
@@ -685,19 +715,27 @@ const styles = StyleSheet.create({
     borderRadius: SPACING.lg,
     overflow: 'hidden',
     ...SHADOWS.card,
+    elevation: 8,
+    shadowColor: '#8A2BE2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   streakCardGradient: {
     padding: SPACING.lg,
+    position: 'relative',
+    borderRadius: SPACING.lg,
+    overflow: 'hidden',
   },
   streakCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.sm,
   },
   trophyContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    width: 64,
+    height: 64,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,
@@ -705,16 +743,24 @@ const styles = StyleSheet.create({
   streakCardText: {
     flex: 1,
   },
-          streakCardTitle: {
-          ...TYPOGRAPHY.bodyMedium,
-          color: COLORS.primaryText,
-          fontWeight: '900',
-          marginBottom: SPACING.xs,
-        },
+  streakCardTitle: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    marginBottom: SPACING.xs,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    letterSpacing: 0.5,
+  },
   streakCardValue: {
-    ...TYPOGRAPHY.headingMedium,
+    fontSize: 32,
     color: '#FFD700',
-    fontWeight: '700',
+    fontWeight: '900',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    letterSpacing: 1,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -856,6 +902,116 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.bodySmall,
     color: COLORS.secondaryText,
     fontSize: 12,
+  },
+  premiumOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)', // Slightly more visible for premium feel
+    borderRadius: SPACING.lg,
+    zIndex: 1,
+    // Enhanced micro-texture effect
+    shadowColor: 'rgba(242, 0, 255, 0.15)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+  },
+  innerGlow: {
+    position: 'absolute',
+    top: -15,
+    left: -15,
+    right: -15,
+    bottom: -15,
+    borderRadius: SPACING.lg + 15,
+    backgroundColor: 'rgba(242, 0, 255, 0.2)', // Enhanced inner glow
+    opacity: 0.6,
+    zIndex: -1,
+    // Add subtle shadow for depth
+    shadowColor: 'rgba(242, 0, 255, 0.3)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+  },
+  borderHighlight: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
+    borderRadius: SPACING.lg + 8,
+    borderWidth: 3,
+    borderColor: 'rgba(242, 0, 255, 0.4)', // Enhanced border highlight
+    zIndex: -1,
+    // Add subtle glow around border
+    shadowColor: 'rgba(242, 0, 255, 0.2)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+  },
+  baseGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: SPACING.lg,
+  },
+  radialOverlay1: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(242, 0, 255, 0.2)',    // Enhanced vibrant magenta
+    opacity: 0.7,
+    zIndex: -1,
+  },
+  radialOverlay2: {
+    position: 'absolute',
+    bottom: -50,
+    right: -50,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(220, 20, 60, 0.2)',    // Enhanced vibrant crimson
+    opacity: 0.7,
+    zIndex: -1,
+  },
+  textureLayer1: {
+    position: 'absolute',
+    top: -20,
+    left: -20,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  textureLayer2: {
+    position: 'absolute',
+    bottom: -20,
+    right: -20,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  rippleEffect: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    borderRadius: SPACING.lg + 10,
+    backgroundColor: 'rgba(242, 0, 255, 0.08)', // Subtle ripple effect
+    opacity: 0.5,
+    zIndex: -1,
   },
 });
 
