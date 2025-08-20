@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { body, caption } from '../constants/typography';
 import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
@@ -46,6 +47,7 @@ const LibraryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
   const { colors } = useThemeGuaranteed();
   const { isMeditationActive } = useMeditation();
+  const insets = useSafeAreaInsets();
   
   // Animation values for button press effects
   const buttonScale = useRef(new Animated.Value(1)).current;
@@ -128,7 +130,7 @@ const LibraryScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.primaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.primaryBackground }]}>
       {/* Premium Background with Gradient */}
       <LinearGradient
         colors={colors.backgroundGradient}
@@ -159,15 +161,17 @@ const LibraryScreen: React.FC = () => {
           source={require('../../assets/mountain-scene-background.webp')}
           style={styles.mountainImage}
           resizeMode="cover"
+          fadeDuration={0}
         />
+        {/* Gradient overlay for smooth transition */}
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']}
           style={styles.mountainOverlay}
         />
       </View>
 
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Header - ABSOLUTE POSITIONING to prevent jolting */}
+      <View style={[styles.header, { top: insets.top + 20 }]}>
         <Text style={[styles.screenTitle, { color: colors.primaryText }]}>Library</Text>
         <TouchableOpacity style={styles.websiteButton}>
           <Text style={[styles.websiteText, { color: colors.primaryText }]}>Website</Text>
@@ -175,8 +179,12 @@ const LibraryScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Content - ABSOLUTE POSITIONING to prevent jolting */}
+      <ScrollView 
+        style={[styles.content, { top: insets.top + 320 }]} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* Four Main Buttons */}
         <View style={styles.categoriesContainer}>
           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
@@ -353,7 +361,7 @@ const LibraryScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -368,34 +376,45 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: 0, // Background should be behind everything
   },
   star: {
     position: 'absolute',
     backgroundColor: COLORS.primaryText,
+    zIndex: 1, // Stars above background
   },
   header: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
-    zIndex: 10,
+    paddingVertical: SPACING.md,
+    zIndex: 20, // Header above everything
   },
   screenTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: COLORS.primaryText,
+    ...TYPOGRAPHY.headingLarge,
     fontWeight: '700',
-    marginLeft: SPACING.sm,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   websiteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    ...SHADOWS.button,
   },
   websiteText: {
     ...body,
-    color: COLORS.primaryText,
+    fontWeight: '600',
     marginRight: SPACING.xs,
   },
   mountainContainer: {
@@ -403,12 +422,16 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: height * 0.28,
-    zIndex: 1,
+    height: 300, // Match exactly with mountainImage height
+    zIndex: 5, // Above background and stars, below header
   },
   mountainImage: {
     width: '100%',
-    height: '100%',
+    height: 300, // Fixed height to prevent jolting
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   mountainOverlay: {
     position: 'absolute',
@@ -416,11 +439,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '50%',
+    zIndex: 6, // Above the mountain image
   },
   content: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: SPACING.lg,
-    paddingTop: height * 0.18, // Reduced from 0.26 to reduce empty space
+  },
+  contentContainer: {
+    paddingBottom: SPACING.xxl, // Add padding at the bottom for the last section
   },
 
   contentCardsContainer: {

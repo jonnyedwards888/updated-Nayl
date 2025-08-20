@@ -15,6 +15,7 @@ class TriggerService {
     try {
       const userId = await sessionService.getCurrentUserId();
       const now = new Date().toISOString();
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
       const entry = {
         user_id: userId,
@@ -29,6 +30,9 @@ class TriggerService {
         .insert(entry);
 
       if (error) throw error;
+
+      // Update successful days tracking - mark today as having an episode
+      await sessionService.updateSuccessfulDaysTracking(today, true);
     } catch (error) {
       console.error('Error saving trigger:', error);
       throw error;
@@ -42,7 +46,7 @@ class TriggerService {
 
       const { data, error } = await supabase
         .from('trigger_entries')
-        .select('*')
+        .select('id, user_id, trigger, emoji, timestamp, details, created_at')
         .eq('user_id', userId)
         .order('timestamp', { ascending: false });
 

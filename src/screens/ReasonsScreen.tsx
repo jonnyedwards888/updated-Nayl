@@ -17,7 +17,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
+import { SHADOWS, TYPOGRAPHY } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import reasonsService, { Reason } from '../services/reasonsService';
 
 const { width, height } = Dimensions.get('window');
@@ -37,6 +38,7 @@ interface ReasonsScreenProps {
 }
 
 const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
+  const { colors, isReady } = useTheme();
   const [reasons, setReasons] = useState<Reason[]>([]);
   const [newReason, setNewReason] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -45,6 +47,493 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
   const starAnimations = useRef<Animated.Value[]>([]);
   const starPositions = useRef<Array<{left: number, top: number}>>([]);
   const modalStarPositions = useRef<Array<{left: number, top: number}>>([]);
+
+  // Check if theme context is ready
+  if (!isReady || !colors) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 18 }}>Loading theme...</Text>
+      </View>
+    );
+  }
+
+  // Create dynamic styles with current theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: 'transparent', // Make transparent to show gradient background
+    },
+    backgroundContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: -2, // Ensure it's behind the starfield
+    },
+    starfield: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: -1, // Ensure it's behind other content but above background
+    },
+    star: {
+      position: 'absolute',
+      width: 2,
+      height: 2,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 1,
+      opacity: 0.8,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      zIndex: 10,
+      backgroundColor: 'transparent', // Remove black background to blend with theme
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...SHADOWS.card,
+    },
+    headerTitleContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      ...TYPOGRAPHY.headingLarge,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    addButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...SHADOWS.card,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: SPACING.lg,
+      backgroundColor: 'transparent', // Make transparent to show gradient background
+    },
+    sectionTitle: {
+      ...TYPOGRAPHY.headingMedium,
+      fontWeight: '600',
+      marginBottom: SPACING.md,
+    },
+    reasonsSection: {
+      marginBottom: SPACING.xl,
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: SPACING.xxl,
+    },
+    emptyStateText: {
+      ...TYPOGRAPHY.bodyMedium,
+      textAlign: 'center',
+      marginTop: SPACING.md,
+    },
+    reasonCard: {
+      flexDirection: 'row',
+      backgroundColor: 'rgba(255, 255, 255, 0.08)', // Slightly more visible
+      borderRadius: SPACING.md,
+      padding: SPACING.md,
+      marginBottom: SPACING.sm,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle border
+      ...SHADOWS.card,
+    },
+    reasonContent: {
+      flex: 1,
+    },
+    reasonText: {
+      ...TYPOGRAPHY.bodyMedium,
+      marginBottom: SPACING.xs,
+    },
+    reasonDate: {
+      ...TYPOGRAPHY.bodySmall,
+    },
+    deleteButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 71, 87, 0.1)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: SPACING.sm,
+    },
+    motivationSection: {
+      marginBottom: SPACING.xl,
+    },
+    motivationCard: {
+      backgroundColor: 'rgba(255, 215, 0, 0.15)', // Slightly more visible gold
+      borderRadius: SPACING.md,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 215, 0, 0.2)', // Subtle gold border
+      ...SHADOWS.card,
+    },
+    motivationTitle: {
+      ...TYPOGRAPHY.headingSmall,
+      fontWeight: '600',
+      marginTop: SPACING.sm,
+      marginBottom: SPACING.sm,
+    },
+    motivationText: {
+      ...TYPOGRAPHY.bodyMedium,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    // Modal Styles
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      zIndex: 9999,
+    },
+    modalBackdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9998,
+    },
+    modalContent: {
+      width: '100%',
+      backgroundColor: '#1A1A2E',
+      borderTopLeftRadius: SPACING.lg,
+      borderTopRightRadius: SPACING.lg,
+      overflow: 'hidden',
+      maxHeight: height * 0.8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.5,
+      shadowRadius: 12,
+      elevation: 12,
+      zIndex: 10000,
+    },
+    modalKeyboardView: {
+      flex: 1,
+    },
+    modalHeader: {
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      backgroundColor: '#2D2D44',
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    modalHeaderContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    modalHeaderDivider: {
+      height: 1,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      marginTop: SPACING.md,
+    },
+    modalTitle: {
+      ...TYPOGRAPHY.headingMedium,
+      color: '#FFFFFF',
+      fontWeight: '700',
+    },
+    modalCloseButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalBody: {
+      padding: SPACING.lg,
+      flex: 1,
+      backgroundColor: '#1A1A2E',
+    },
+    modalSubtitle: {
+      ...TYPOGRAPHY.bodyLarge,
+      color: '#FFFFFF',
+      marginBottom: SPACING.lg,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    textInputContainer: {
+      position: 'relative',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      borderRadius: SPACING.md,
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.4)',
+      marginBottom: SPACING.lg,
+      minHeight: 140,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    modalTextInput: {
+      color: '#FFFFFF',
+      minHeight: 120,
+      textAlignVertical: 'top',
+      paddingVertical: SPACING.lg,
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.xl,
+      fontSize: 18,
+      lineHeight: 26,
+      fontWeight: '400',
+      textAlign: 'left',
+      backgroundColor: 'transparent',
+      includeFontPadding: false,
+    },
+    characterCountContainer: {
+      position: 'absolute',
+      bottom: SPACING.sm,
+      right: SPACING.sm,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: SPACING.xs,
+      borderRadius: SPACING.sm,
+    },
+    modalCharacterCount: {
+      ...TYPOGRAPHY.bodySmall,
+      fontWeight: '500',
+    },
+    modalFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: SPACING.lg,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255, 255, 255, 0.1)',
+      backgroundColor: '#2D2D44',
+    },
+    modalCancelButton: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      borderRadius: SPACING.md,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      marginRight: SPACING.sm,
+      alignItems: 'center',
+    },
+    modalCancelText: {
+      ...TYPOGRAPHY.buttonText,
+    },
+    modalAddButton: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      borderRadius: SPACING.md,
+      ...SHADOWS.card,
+      alignItems: 'center',
+    },
+    modalAddButtonDisabled: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      opacity: 0.5,
+    },
+    modalAddText: {
+      ...TYPOGRAPHY.buttonText,
+      fontWeight: '700',
+    },
+    debugContainer: {
+      padding: SPACING.sm,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      borderRadius: SPACING.sm,
+      marginTop: SPACING.sm,
+    },
+    debugText: {
+      ...TYPOGRAPHY.bodySmall,
+      textAlign: 'center',
+    },
+    simpleModalContainer: {
+      flex: 1,
+      backgroundColor: 'transparent', // Make transparent to show gradient background
+    },
+    simpleModalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    simpleModalBackButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: SPACING.sm,
+    },
+    simpleModalTitle: {
+      ...TYPOGRAPHY.headingMedium,
+      fontWeight: '700',
+      flex: 1,
+      textAlign: 'center',
+    },
+    simpleModalSpacer: {
+      width: 40,
+    },
+    simpleModalBody: {
+      padding: SPACING.lg,
+      flex: 1,
+      backgroundColor: 'transparent', // Make transparent to show gradient background
+    },
+    simpleModalSubtitle: {
+      ...TYPOGRAPHY.bodyLarge,
+      marginBottom: SPACING.lg,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    simpleModalTextInputContainer: {
+      position: 'relative',
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: SPACING.md,
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      marginBottom: SPACING.lg,
+      minHeight: 140,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    simpleModalTextInput: {
+      minHeight: 120,
+      textAlignVertical: 'top',
+      paddingVertical: SPACING.lg,
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.xl,
+      fontSize: 18,
+      lineHeight: 26,
+      fontWeight: '400',
+      textAlign: 'left',
+      backgroundColor: 'transparent',
+      includeFontPadding: false,
+    },
+    simpleModalCharacterCount: {
+      ...TYPOGRAPHY.bodySmall,
+      fontWeight: '500',
+      textAlign: 'right',
+      marginTop: SPACING.sm,
+    },
+    simpleModalAddButtonInline: {
+      height: 48, // Fixed height instead of flex
+      width: '60%', // Make button narrower instead of full width
+      alignSelf: 'center', // Center the button
+      paddingVertical: SPACING.sm,
+      paddingHorizontal: SPACING.lg,
+      borderRadius: SPACING.md,
+      marginTop: SPACING.md,
+      overflow: 'hidden', // For gradient
+    },
+    simpleModalAddButtonGradient: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: SPACING.md,
+    },
+    simpleModalAddText: {
+      ...TYPOGRAPHY.buttonText,
+      fontWeight: '700',
+      fontSize: 16,
+    },
+    simpleModalDebugContainer: {
+      padding: SPACING.sm,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      borderRadius: SPACING.sm,
+      marginTop: SPACING.sm,
+    },
+    simpleModalDebugText: {
+      ...TYPOGRAPHY.bodySmall,
+      textAlign: 'center',
+    },
+    simpleModalFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: SPACING.lg,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255, 255, 255, 0.1)',
+      backgroundColor: '#2D2D44',
+      zIndex: 1000,
+      elevation: 10,
+    },
+    simpleModalCancelButton: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      borderRadius: SPACING.md,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      marginRight: SPACING.sm,
+      alignItems: 'center',
+    },
+    simpleModalCancelText: {
+      ...TYPOGRAPHY.buttonText,
+    },
+    simpleModalAddButton: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      borderRadius: SPACING.md,
+      ...SHADOWS.card,
+      alignItems: 'center',
+    },
+    simpleModalAddButtonDisabled: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      opacity: 0.5,
+    },
+    simpleModalAddButtonActive: {
+      shadowColor: colors.primaryAccent,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    modalBackgroundContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: -1, // Ensure it's behind other content
+    },
+    modalStarfield: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: -1, // Ensure it's behind other content
+    },
+    modalStar: {
+      position: 'absolute',
+      width: 2,
+      height: 2,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 1,
+      opacity: 0.8,
+    },
+  });
 
   // Initialize star animations and positions
   useEffect(() => {
@@ -174,7 +663,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Premium Background with Gradient */}
       <LinearGradient
-        colors={COLORS.backgroundGradient}
+        colors={colors.backgroundGradient}
         style={styles.backgroundContainer}
       />
       
@@ -201,16 +690,16 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.primaryText} />
+          <Ionicons name="arrow-back" size={24} color={colors.primaryText} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Reasons for Changing</Text>
+          <Text style={[styles.headerTitle, { color: colors.primaryText }]}>Reasons for Changing</Text>
         </View>
         <TouchableOpacity
           style={styles.addButton}
           onPress={showModal}
         >
-          <Ionicons name="add" size={24} color={COLORS.primaryText} />
+          <Ionicons name="add" size={24} color={colors.primaryText} />
         </TouchableOpacity>
       </View>
 
@@ -222,14 +711,14 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Reasons List */}
           <View style={styles.reasonsSection}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: colors.primaryText }]}>
               Your Reasons ({reasons.length})
             </Text>
             
             {reasons.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="heart-outline" size={48} color={COLORS.secondaryText} />
-                <Text style={styles.emptyStateText}>
+                <Ionicons name="heart-outline" size={48} color={colors.secondaryText} />
+                <Text style={[styles.emptyStateText, { color: colors.secondaryText }]}>
                   No reasons added yet. Tap the + button to add your first reason!
                 </Text>
               </View>
@@ -237,8 +726,8 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
               reasons.map((reason) => (
                 <View key={reason.id} style={styles.reasonCard}>
                   <View style={styles.reasonContent}>
-                    <Text style={styles.reasonText}>{reason.text}</Text>
-                    <Text style={styles.reasonDate}>
+                    <Text style={[styles.reasonText, { color: colors.primaryText }]}>{reason.text}</Text>
+                    <Text style={[styles.reasonDate, { color: colors.secondaryText }]}>
                       Added {formatDate(reason.created_at)}
                     </Text>
                   </View>
@@ -246,7 +735,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
                     style={styles.deleteButton}
                     onPress={() => deleteReason(reason.id)}
                   >
-                    <Ionicons name="trash-outline" size={20} color={COLORS.destructiveAction} />
+                    <Ionicons name="trash-outline" size={20} color={colors.destructiveAction || '#FF4757'} />
                   </TouchableOpacity>
                 </View>
               ))
@@ -257,8 +746,8 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
           <View style={styles.motivationSection}>
             <View style={styles.motivationCard}>
               <Ionicons name="bulb-outline" size={32} color="#FFD700" />
-              <Text style={styles.motivationTitle}>Why This Matters</Text>
-              <Text style={styles.motivationText}>
+              <Text style={[styles.motivationTitle, { color: colors.primaryText }]}>Why This Matters</Text>
+              <Text style={[styles.motivationText, { color: colors.primaryText }]}>
                 Writing down your reasons helps you stay motivated and focused on your goal. 
                 Review these whenever you feel tempted to bite your nails.
               </Text>
@@ -278,7 +767,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
         <SafeAreaView style={styles.simpleModalContainer}>
           {/* Modal Background with Stars */}
           <LinearGradient
-            colors={COLORS.backgroundGradient}
+            colors={colors.backgroundGradient}
             style={styles.modalBackgroundContainer}
           />
           
@@ -300,14 +789,14 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
           </View>
 
           {/* Modal Header */}
-          <View style={styles.simpleModalHeader}>
+          <View style={[styles.simpleModalHeader, { backgroundColor: colors.secondaryBackground }]}>
             <TouchableOpacity
               style={styles.simpleModalBackButton}
               onPress={hideModal}
             >
-              <Ionicons name="arrow-back" size={24} color={COLORS.primaryText} />
+              <Ionicons name="arrow-back" size={24} color={colors.primaryText} />
             </TouchableOpacity>
-            <Text style={[styles.simpleModalTitle, { color: COLORS.primaryText }]}>Add New Reason</Text>
+            <Text style={[styles.simpleModalTitle, { color: colors.primaryText }]}>Add New Reason</Text>
             <View style={styles.simpleModalSpacer} />
           </View>
 
@@ -317,7 +806,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            <Text style={[styles.simpleModalSubtitle, { color: COLORS.primaryText }]}>
+            <Text style={[styles.simpleModalSubtitle, { color: colors.primaryText }]}>
               Why do you want to stop biting your nails?
             </Text>
             
@@ -325,9 +814,9 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
             <View style={styles.simpleModalTextInputContainer}>
               <TextInput
                 ref={textInputRef}
-                style={styles.simpleModalTextInput}
+                style={[styles.simpleModalTextInput, { color: colors.primaryText }]}
                 placeholder="Enter your reason here..."
-                placeholderTextColor={COLORS.mutedText}
+                placeholderTextColor={colors.mutedText || colors.secondaryText}
                 value={newReason}
                 onChangeText={(text) => {
                   setNewReason(text);
@@ -340,8 +829,8 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
                 blurOnSubmit={false}
                 returnKeyType="done"
                 enablesReturnKeyAutomatically={true}
-                selectionColor={COLORS.primaryText}
-                cursorColor={COLORS.primaryText}
+                selectionColor={colors.primaryText}
+                cursorColor={colors.primaryText}
                 keyboardType="default"
                 autoCapitalize="sentences"
                 autoCorrect={true}
@@ -354,7 +843,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
             </View>
             
             {/* Character Count */}
-            <Text style={[styles.simpleModalCharacterCount, { color: COLORS.secondaryText }]}>
+            <Text style={[styles.simpleModalCharacterCount, { color: colors.secondaryText }]}>
               {newReason.length}/200
             </Text>
             
@@ -374,7 +863,7 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.simpleModalAddText}>
+                <Text style={[styles.simpleModalAddText, { color: colors.primaryBackground }]}>
                   {isAdding ? 'Adding...' : 'Add Reason'}
                 </Text>
               </LinearGradient>
@@ -386,502 +875,6 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent', // Make transparent to show gradient background
-  },
-  backgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -2, // Ensure it's behind the starfield
-  },
-  starfield: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1, // Ensure it's behind other content but above background
-  },
-  star: {
-    position: 'absolute',
-    width: 2,
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-    opacity: 0.8,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    zIndex: 10,
-    backgroundColor: 'transparent', // Remove black background to blend with theme
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.card,
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...TYPOGRAPHY.headingLarge,
-    color: COLORS.primaryText,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.card,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: 'transparent', // Make transparent to show gradient background
-  },
-  sectionTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: COLORS.primaryText,
-    fontWeight: '600',
-    marginBottom: SPACING.md,
-  },
-  reasonsSection: {
-    marginBottom: SPACING.xl,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xxl,
-  },
-  emptyStateText: {
-    ...TYPOGRAPHY.bodyMedium,
-    color: COLORS.secondaryText,
-    textAlign: 'center',
-    marginTop: SPACING.md,
-  },
-  reasonCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)', // Slightly more visible
-    borderRadius: SPACING.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle border
-    ...SHADOWS.card,
-  },
-  reasonContent: {
-    flex: 1,
-  },
-  reasonText: {
-    ...TYPOGRAPHY.bodyMedium,
-    color: COLORS.primaryText,
-    marginBottom: SPACING.xs,
-  },
-  reasonDate: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.secondaryText,
-  },
-  deleteButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 71, 87, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: SPACING.sm,
-  },
-  motivationSection: {
-    marginBottom: SPACING.xl,
-  },
-  motivationCard: {
-    backgroundColor: 'rgba(255, 215, 0, 0.15)', // Slightly more visible gold
-    borderRadius: SPACING.md,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)', // Subtle gold border
-    ...SHADOWS.card,
-  },
-  motivationTitle: {
-    ...TYPOGRAPHY.headingSmall,
-    color: COLORS.primaryText,
-    fontWeight: '600',
-    marginTop: SPACING.sm,
-    marginBottom: SPACING.sm,
-  },
-  motivationText: {
-    ...TYPOGRAPHY.bodyMedium,
-    color: COLORS.primaryText,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    zIndex: 9999,
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9998,
-  },
-  modalContent: {
-    width: '100%',
-    backgroundColor: '#1A1A2E',
-    borderTopLeftRadius: SPACING.lg,
-    borderTopRightRadius: SPACING.lg,
-    overflow: 'hidden',
-    maxHeight: height * 0.8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 12,
-    zIndex: 10000,
-  },
-  modalKeyboardView: {
-    flex: 1,
-  },
-  modalHeader: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: '#2D2D44',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  modalHeaderContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalHeaderDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    marginTop: SPACING.md,
-  },
-  modalTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  modalCloseButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalBody: {
-    padding: SPACING.lg,
-    flex: 1,
-    backgroundColor: '#1A1A2E',
-  },
-  modalSubtitle: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: '#FFFFFF',
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  textInputContainer: {
-    position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: SPACING.md,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    marginBottom: SPACING.lg,
-    minHeight: 140,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  modalTextInput: {
-    color: '#FFFFFF',
-    minHeight: 120,
-    textAlignVertical: 'top',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '400',
-    textAlign: 'left',
-    backgroundColor: 'transparent',
-    includeFontPadding: false,
-  },
-  characterCountContainer: {
-    position: 'absolute',
-    bottom: SPACING.sm,
-    right: SPACING.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: SPACING.sm,
-  },
-  modalCharacterCount: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.secondaryText,
-    fontWeight: '500',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: '#2D2D44',
-  },
-  modalCancelButton: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    marginRight: SPACING.sm,
-    alignItems: 'center',
-  },
-  modalCancelText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.primaryText,
-  },
-  modalAddButton: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.md,
-    backgroundColor: COLORS.primaryAccent,
-    ...SHADOWS.card,
-    alignItems: 'center',
-  },
-  modalAddButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    opacity: 0.5,
-  },
-  modalAddText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.primaryBackground,
-    fontWeight: '700',
-  },
-  debugContainer: {
-    padding: SPACING.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: SPACING.sm,
-    marginTop: SPACING.sm,
-  },
-  debugText: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.secondaryText,
-    textAlign: 'center',
-  },
-  simpleModalContainer: {
-    flex: 1,
-    backgroundColor: 'transparent', // Make transparent to show gradient background
-  },
-  simpleModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.secondaryBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  simpleModalBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.sm,
-  },
-  simpleModalTitle: {
-    ...TYPOGRAPHY.headingMedium,
-    color: COLORS.primaryText,
-    fontWeight: '700',
-    flex: 1,
-    textAlign: 'center',
-  },
-  simpleModalSpacer: {
-    width: 40,
-  },
-  simpleModalBody: {
-    padding: SPACING.lg,
-    flex: 1,
-    backgroundColor: 'transparent', // Make transparent to show gradient background
-  },
-  simpleModalSubtitle: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.primaryText,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  simpleModalTextInputContainer: {
-    position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: SPACING.md,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    marginBottom: SPACING.lg,
-    minHeight: 140,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  simpleModalTextInput: {
-    color: COLORS.primaryText,
-    minHeight: 120,
-    textAlignVertical: 'top',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '400',
-    textAlign: 'left',
-    backgroundColor: 'transparent',
-    includeFontPadding: false,
-  },
-  simpleModalCharacterCount: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.secondaryText,
-    fontWeight: '500',
-    textAlign: 'right',
-    marginTop: SPACING.sm,
-  },
-  simpleModalAddButtonInline: {
-    height: 48, // Fixed height instead of flex
-    width: '60%', // Make button narrower instead of full width
-    alignSelf: 'center', // Center the button
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.md,
-    marginTop: SPACING.md,
-    overflow: 'hidden', // For gradient
-  },
-  simpleModalAddButtonGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: SPACING.md,
-  },
-  simpleModalAddText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.primaryBackground,
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  simpleModalDebugContainer: {
-    padding: SPACING.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: SPACING.sm,
-    marginTop: SPACING.sm,
-  },
-  simpleModalDebugText: {
-    ...TYPOGRAPHY.bodySmall,
-    color: COLORS.secondaryText,
-    textAlign: 'center',
-  },
-  simpleModalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: '#2D2D44',
-    zIndex: 1000,
-    elevation: 10,
-  },
-  simpleModalCancelButton: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    marginRight: SPACING.sm,
-    alignItems: 'center',
-  },
-  simpleModalCancelText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.primaryText,
-  },
-  simpleModalAddButton: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.md,
-    backgroundColor: COLORS.primaryAccent,
-    ...SHADOWS.card,
-    alignItems: 'center',
-  },
-  simpleModalAddButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    opacity: 0.5,
-  },
-  simpleModalAddButtonActive: {
-    shadowColor: COLORS.primaryAccent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  modalBackgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1, // Ensure it's behind other content
-  },
-  modalStarfield: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1, // Ensure it's behind other content
-  },
-  modalStar: {
-    position: 'absolute',
-    width: 2,
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-    opacity: 0.8,
-  },
-});
+
 
 export default ReasonsScreen;

@@ -14,6 +14,8 @@ import { StreakProvider } from './src/context/StreakContext';
 import { PanicModalProvider, usePanicModal } from './src/context/PanicModalContext';
 import { TipsModalProvider } from './src/context/TipsModalContext';
 import { MeditationProvider, useMeditation } from './src/context/MeditationContext';
+import { ColorProvider } from './src/context/ColorContext';
+import { AchievementProvider } from './src/context/AchievementContext';
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -29,6 +31,9 @@ import OnboardingQuestionnaireScreen from './src/screens/OnboardingQuestionnaire
 import EditStreakScreen from './src/screens/EditStreakScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
 
+// Import centralized stack navigators
+import { HomeStack, ProfileStack, LibraryStack } from './src/navigation/StackNavigator';
+
 // Import components
 import { User, Book, House, Trophy, ChartBar } from 'phosphor-react-native';
 
@@ -37,7 +42,6 @@ import { COLORS } from './src/constants/theme';
 import hapticService, { HapticType, HapticIntensity } from './src/services/hapticService';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
 
 // Simple function to control meditation state
 export const setMeditationActive = (active: boolean) => {
@@ -51,57 +55,13 @@ const TAB_ICON_SIZE = 24;
 const ICON_FILL_ACTIVE = '#C1FF72';
 const ICON_FILL_INACTIVE = '#94A3B8';
 
-// Navigation stacks
-function HomeStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="HomeMain" component={HomeScreen} />
-      <Stack.Screen name="OnboardingQuestionnaire" component={OnboardingQuestionnaireScreen} />
-      <Stack.Screen name="EditStreak" component={EditStreakScreen} />
-      <Stack.Screen name="Analytics" component={AnalyticsScreen} />
-      <Stack.Screen name="Meditation" component={MeditationScreen} />
-    </Stack.Navigator>
-  );
-}
-
-function ProfileStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-      <Stack.Screen name="Reasons" component={ReasonsScreen} />
-      <Stack.Screen name="TriggerHistory" component={TriggerHistoryScreen} />
-    </Stack.Navigator>
-  );
-}
-
-function LibraryStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="LibraryMain" component={LibraryScreen} />
-      <Stack.Screen name="Achievements" component={AchievementsScreen} />
-      <Stack.Screen name="RelaxationSound" component={RelaxationSoundScreen} />
-      <Stack.Screen name="Learning" component={LearningScreen} />
-    </Stack.Navigator>
-  );
-}
-
 // Main app content with theme awareness
 function AppContent() {
   const { colors } = useTheme();
   const { isPanicModalVisible } = usePanicModal();
   const { isMeditationActive } = useMeditation();
+  
+  // Removed problematic Image.prefetch that was causing URL request handler errors
   
   return (
     <NavigationContainer>
@@ -209,6 +169,7 @@ function AppContent() {
           name="Home" 
           component={HomeStack}
           options={{
+            tabBarStyle: { display: 'none' }, // Hide tab bar for Home tab (contains onboarding screens)
             tabBarIcon: ({ focused, color }) => (
               <View style={{
                 padding: 8,
@@ -266,7 +227,7 @@ function AppContent() {
           }}
         />
         
-        {/* Analytics Tab - Bar chart icon with custom red background */}
+        {/* Analytics Tab - Bar chart icon with subtle green glow */}
         <Tab.Screen 
           name="Analytics" 
           component={AnalyticsScreen}
@@ -275,8 +236,8 @@ function AppContent() {
               <View style={{
                 padding: 8,
                 borderRadius: 12,
-                // CUSTOM: Bright red background for Analytics tab when active
-                backgroundColor: focused ? 'rgba(0, 0, 0, 0.92)' : 'transparent',
+                // Active tab background indicator - subtle green glow (same as other tabs)
+                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
                 // Icon glow effect for active state
                 shadowColor: focused ? colors.iconGlow : 'transparent',
                 shadowOffset: { width: 0, height: 0 },
@@ -426,9 +387,11 @@ export default function App() {
           <PanicModalProvider>
             <TipsModalProvider>
               <MeditationProvider>
-                <PerformanceMeasureView screenName="App">
-                  <AppContent />
-                </PerformanceMeasureView>
+                <ColorProvider>
+                  <AchievementProvider>
+                    <ThemeAwareAppContent />
+                  </AchievementProvider>
+                </ColorProvider>
               </MeditationProvider>
             </TipsModalProvider>
           </PanicModalProvider>

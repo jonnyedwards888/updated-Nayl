@@ -36,6 +36,7 @@ import triggerService from '../services/triggerService';
 import sessionService from '../services/sessionService';
 import { typography, body, bodySmall, caption, buttonText, timerText, timerLabel } from '../constants/typography';
 import ProfileHeader from '../components/ProfileHeader';
+import { UserDashboard } from '../lib/supabase';
 
 
 const { width, height } = Dimensions.get('window');
@@ -78,6 +79,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [consecutiveDays, setConsecutiveDays] = useState(0);
   const [weeklyCheckIns, setWeeklyCheckIns] = useState<boolean[]>(Array(7).fill(false));
+  
+  // NEW: Dashboard data state for performance optimization
+  const [dashboardData, setDashboardData] = useState<UserDashboard | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Panic modal state from context
   const { isPanicModalVisible, setIsPanicModalVisible } = usePanicModal();
@@ -129,64 +134,102 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }))
   );
 
-  // Initialize session and load current streak
-  useEffect(() => {
-    const initializeSession = async () => {
-      try {
-        // Wrap each async call in individual try-catch blocks
-        let session;
+  // NEW: Load dashboard data using the optimized SessionService
+  const loadDashboardData = useCallback(async () => {
+    try {
+      // LIGHTNING FAST: Show data instantly from memory
+      const localDashboard = await sessionService.getLocalDashboard();
+      setDashboardData(localDashboard);
+      setConsecutiveDays(localDashboard.consecutive_days);
+      // NEW LOGIC: Weekly check-ins now represent successful days (no nail-biting episodes)
+      // Instead of just days logged in, this shows actual progress toward the goal
+      const weeklyArray = Array(7).fill(false).map((_, index) => index < localDashboard.successful_days_this_week);
+      setWeeklyCheckIns(weeklyArray);
+      setIsInitialized(true);
+      setIsLoading(false);
+      
+      // Background sync (non-blocking, user doesn't wait)
+      setTimeout(async () => {
         try {
-          session = await sessionService.startSession();
-        } catch (sessionError) {
-          console.warn('Failed to start session:', sessionError);
-          // Continue with local functionality
+          const data = await sessionService.getDashboardData();
+          if (data) {
+            setDashboardData(data);
+            setConsecutiveDays(data.consecutive_days);
+            // NEW LOGIC: Weekly check-ins now represent successful days (no nail-biting episodes)
+            const weeklyArray = Array(7).fill(false).map((_, index) => index < data.successful_days_this_week);
+            setWeeklyCheckIns(weeklyArray);
+          }
+        } catch (dbError) {
+          console.warn('Background sync failed, using local data:', dbError);
         }
-
-        try {
-          await sessionService.markTodayCheckedIn();
-        } catch (checkInError) {
-          console.warn('Failed to mark today as checked in:', checkInError);
-          // Continue with local functionality
-        }
-
-        let consecutiveDays = 0;
-        try {
-          consecutiveDays = await sessionService.getConsecutiveDays();
-        } catch (consecutiveError) {
-          console.warn('Failed to get consecutive days:', consecutiveError);
-          // Use default value
-        }
-
-        let weeklyCheckIns = Array(7).fill(false);
-        try {
-          weeklyCheckIns = await sessionService.getWeeklyCheckIns();
-        } catch (weeklyError) {
-          console.warn('Failed to get weekly check-ins:', weeklyError);
-          // Use default value
-        }
-
-        setConsecutiveDays(consecutiveDays);
-        setWeeklyCheckIns(weeklyCheckIns);
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Error initializing session:', error);
-        // Set default values and continue
-        setConsecutiveDays(0);
-        setWeeklyCheckIns(Array(7).fill(false));
-        setIsInitialized(true); // Still set to true to prevent infinite loading
-      }
-    };
-
-    initializeSession();
+      }, 50); // Minimal delay to not block UI
+      
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setIsInitialized(true);
+      setIsLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    // Start session and mark check-in in background (non-blocking)
+    sessionService.startSession().catch(error => {
+      console.warn('Failed to start session:', error);
+    });
+    
+    sessionService.markTodayCheckedIn().catch(error => {
+      console.warn('Failed to mark today checked in:', error);
+    });
 
+    // NEW: Check if today should be marked as successful (no episodes)
+    // This ensures the weekly check-ins reflect actual successful days
+    const checkTodaySuccess = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        // Check if there were any episodes today
+        const triggerHistory = await triggerService.getTriggerHistory();
+        const todayTriggers = triggerHistory.filter(entry => 
+          entry.timestamp.startsWith(today)
+        );
+        
+        // If no episodes today, mark as successful
+        if (todayTriggers.length === 0) {
+          await sessionService.markTodayAsSuccessful();
+        }
+      } catch (error) {
+        console.warn('Failed to check today\'s success:', error);
+      }
+    };
+    
+    checkTodaySuccess();
 
+    // Load dashboard data immediately
+    loadDashboardData();
+  }, [loadDashboardData]);
 
+  // NEW: Refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Refresh dashboard data when screen is focused
+      if (isInitialized) {
+        loadDashboardData();
+      }
+    }, [loadDashboardData, isInitialized])
+  );
 
-
-
-
+  // NEW: Manually mark today as successful and refresh weekly check-ins
+  const markTodayAsSuccessful = async () => {
+    try {
+      await sessionService.markTodayAsSuccessful();
+      // Refresh the dashboard data to update weekly check-ins
+      await loadDashboardData();
+      // Provide feedback to user
+      hapticService.trigger(HapticType.SUCCESS, HapticIntensity.NORMAL);
+    } catch (error) {
+      console.error('Failed to mark today as successful:', error);
+      hapticService.trigger(HapticType.ERROR, HapticIntensity.NORMAL);
+    }
+  };
 
   // Format timer display - only show relevant units
   const formatTime = (totalSeconds: number) => {
@@ -578,6 +621,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       {/* Main Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Test Onboarding Buttons - Remove these later */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: SPACING.md, marginTop: 20 }}>
+          <TouchableOpacity 
+            style={{
+              backgroundColor: '#8A2BE2',
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 12,
+            }}
+            onPress={() => navigation.navigate('OnboardingTest')}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>
+              🧪 Test Slide
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={{
+              backgroundColor: '#3B82F6',
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 12,
+            }}
+            onPress={() => navigation.navigate('OnboardingFlow')}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>
+              🎯 Full Flow
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
                           <ProfileHeader size="medium" navigation={navigation} />
@@ -723,7 +797,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           )}
         </TouchableOpacity>
 
-        {/* Action Buttons Grid */}
+        {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <CircularActionButton
             icon="create-outline"
@@ -1289,9 +1363,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primaryText,
     marginLeft: SPACING.sm,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    // Reduced glare/glow effect - cleaner text appearance
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 0.5 },
+    textShadowRadius: 1,
   },
   panicButton: {
     position: 'absolute',

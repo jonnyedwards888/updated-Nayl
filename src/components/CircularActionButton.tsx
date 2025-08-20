@@ -74,8 +74,8 @@ export default function CircularActionButton({
 
   // Define variant type
   type VariantConfig = {
-    colors: readonly [string, string, string];
-    hoverColors: readonly [string, string, string];
+    colors: readonly [string, string] | readonly [string, string, string];
+    hoverColors: readonly [string, string] | readonly [string, string, string];
     iconColor: string;
     textColor: string;
   };
@@ -83,8 +83,8 @@ export default function CircularActionButton({
   // Variant configurations
   const variantConfig: Record<string, VariantConfig> = {
     primary: {
-      colors: ['rgba(8, 16, 32, 0.95)', 'rgba(20, 26, 48, 0.9)', 'rgba(30, 40, 60, 0.85)'] as const,
-      hoverColors: ['rgba(10, 20, 40, 0.95)', 'rgba(25, 35, 55, 0.9)', 'rgba(35, 45, 65, 0.85)'] as const,
+      colors: ['rgb(22, 27, 56)', 'rgb(14, 19, 41)'] as const, // Use exact same colors as Brain Rewiring button
+      hoverColors: ['rgb(26, 31, 60)', 'rgb(18, 23, 45)'] as const, // Slightly lighter on hover
       iconColor: colors.primaryText,
       textColor: colors.primaryText,
     },
@@ -125,8 +125,8 @@ export default function CircularActionButton({
   if (!currentVariant) {
     console.error('❌ CircularActionButton: Even fallback variant is invalid! Creating minimal fallback');
     currentVariant = {
-      colors: ['#000000', '#000000', '#000000'] as const,
-      hoverColors: ['#000000', '#000000', '#000000'] as const,
+      colors: ['#000000', '#000000'] as const,
+      hoverColors: ['#000000', '#000000'] as const,
       iconColor: '#FFFFFF',
       textColor: '#FFFFFF',
     };
@@ -253,37 +253,19 @@ export default function CircularActionButton({
         >
           {variant === 'primary' ? (
             <LinearGradient
-              colors={['rgba(8, 16, 32, 0.95)', 'rgba(20, 26, 48, 0.9)', 'rgba(30, 40, 60, 0.85)']}
+              colors={currentVariant.colors}
               style={[
                 styles.button,
                 {
                   width: buttonSize,
                   height: buttonSize,
                   borderRadius: buttonSize / 2,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: 'rgba(255, 255, 255, 0.14)',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: 0.28,
-                  shadowRadius: 16,
-                  elevation: 6,
                 },
               ]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 0, y: 1 }}
             >
-              {/* Glow effect */}
-              <Animated.View
-                style={[
-                  styles.glow,
-                  {
-                    opacity: glowOpacity,
-                    width: buttonSize,
-                    height: buttonSize,
-                    borderRadius: buttonSize / 2,
-                  },
-                ]}
-              />
+              {/* Glow effect - removed for primary variant to match Brain Rewiring button exactly */}
 
               {/* Icon */}
               {loading ? (
@@ -318,7 +300,7 @@ export default function CircularActionButton({
                 },
               ]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 0, y: 1 }}
             >
               {/* Glow effect */}
               <Animated.View
@@ -401,12 +383,12 @@ const styles = StyleSheet.create({
   },
   glow: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
   },
   icon: {
     zIndex: 2,

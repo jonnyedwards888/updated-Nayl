@@ -14,9 +14,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { useAchievements } from '../context/AchievementContext';
 import { TYPOGRAPHY } from '../constants/theme';
 import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
+import AchievementOverlay from '../components/AchievementOverlay';
+import AchievementSkeleton from '../components/AchievementSkeleton';
+import ScreenSkeleton from '../components/ScreenSkeleton';
+import achievementService from '../services/achievementService';
+import { DatabaseAchievement } from '../services/achievementService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -61,7 +68,7 @@ interface AchievementBadgeProps {
   progress: number;
   maxProgress: number;
   gradientColors: readonly [string, string, ...string[]];
-  icon: keyof typeof Ionicons.glyphMap | 'custom';
+  icon: keyof typeof Ionicons.glyphMap | 'custom' | string;
   iconSource?: any;
   isUnlocked: boolean;
 }
@@ -106,7 +113,7 @@ const AchievementBadge: React.FC<AchievementBadgeProps & { index: number }> = ({
         <View style={styles.badgeIconContainer}>
           {isUnlocked ? (
             <>
-              {icon === 'custom' && iconSource ? (
+              {iconSource ? (
                 <Image 
                   source={iconSource} 
                   style={[
@@ -115,8 +122,9 @@ const AchievementBadge: React.FC<AchievementBadgeProps & { index: number }> = ({
                   ]} 
                 />
               ) : (
+                // Handle emoji icons or any other icon type
                 <View style={styles.customIcon}>
-                  <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={36} color="#FFFFFF" />
+                  <Text style={styles.emojiIcon}>{icon}</Text>
                 </View>
               )}
 
@@ -183,10 +191,12 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     elevation: 2,
   },
   header: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xxl,
     paddingBottom: SPACING.lg,
-    position: 'relative',
+    zIndex: 10,
   },
   headerTop: {
     flexDirection: 'row',
@@ -212,11 +222,21 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     width: 40,
   },
   screenTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
+    ...TYPOGRAPHY.displayMedium,
     color: themeColors.primaryText,
     textAlign: 'center',
+    fontSize: 32, // Reduced from 36 to 32 for more premium, subtle appearance
+    fontWeight: '700',
+    letterSpacing: 0.5, // Improved letter spacing
+    // Premium layered shadows - base shadow + accent shadow
+    textShadowColor: themeColors.primaryBackground,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    // Additional premium accent shadow
+    shadowColor: themeColors.primaryAccent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   progressContainer: {
     marginTop: SPACING.sm,
@@ -264,8 +284,14 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     opacity: 0.8,
   },
   content: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingTop: SPACING.lg,
+  },
+  contentContainer: {
+    paddingBottom: SPACING.lg,
   },
   achievementsGrid: {
     flexDirection: 'row',
@@ -312,6 +338,11 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     // Ensure all icons fill the exact same size container
     resizeMode: 'cover',
     backgroundColor: 'transparent',
+  },
+  emojiIcon: {
+    fontSize: 36,
+    textAlign: 'center',
+    lineHeight: 72,
   },
   // Larger icon style for small icons to match visual size of others
   customIconLarge: {
@@ -376,11 +407,63 @@ const createStyles = (themeColors: any) => StyleSheet.create({
   bottomSpacing: {
     height: 100,
   },
+  // Test button styles
+  testButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.sm,
+  },
+  testButton: {
+    width: '48%',
+    borderRadius: SPACING.md,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  testButtonGradient: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  testButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
 });
 
-const AchievementsScreen: React.FC = () => {
+export default function AchievementsScreen() {
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const themeResult = useTheme();
+  const colors = themeResult?.colors;
+  const insets = useSafeAreaInsets();
+  
+  // Loading state to prevent layout shifts
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDataReady, setIsDataReady] = useState(false);
+  
+  // NEW: Database achievements state for performance optimization
+  const [databaseAchievements, setDatabaseAchievements] = useState<DatabaseAchievement[]>([]);
+  
+  // Get achievements from context (for overlay functionality)
+  const {
+    currentOverlay,
+    isOverlayVisible,
+    hideAchievementOverlay,
+    resetAllAchievements,
+    unlockNextAchievement
+  } = useAchievements();
+  
+  // Local state for unlocked achievements (fallback)
   const [unlockedAchievements, setUnlockedAchievements] = useState(new Set([0, 1]));
 
   
@@ -391,8 +474,8 @@ const AchievementsScreen: React.FC = () => {
       y: Math.random() * height,
       opacity: Math.random() * 0.9 + 0.15, // Enhanced opacity range: 0.15 to 1.05 for more variation
       speed: Math.random() * 0.15 + 0.03,
-      directionX: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
-      directionY: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
+      directionX: (Math.random() - 0.5) * 2,
+      directionY: (Math.random() - 0.5) * 2,
       size: Math.random() * 2.2 + 0.5, // Varied star sizes for depth
     }))
   );
@@ -433,25 +516,131 @@ const AchievementsScreen: React.FC = () => {
     };
   }, [updateStarPositions]);
 
+  // NEW: Load achievements using the optimized AchievementService
+  useEffect(() => {
+    const loadAchievements = async () => {
+      try {
+        // LIGHTNING FAST: Show data instantly from memory
+        const localAchievements = await achievementService.getLocalAchievements();
+        setDatabaseAchievements(localAchievements);
+        setIsDataReady(true);
+        setIsLoading(false);
+        
+        // Background sync (non-blocking, user doesn't wait)
+        setTimeout(async () => {
+          try {
+            await achievementService.initializeDefaultAchievements();
+            const dbAchievements = await achievementService.getUserAchievements();
+            setDatabaseAchievements(dbAchievements);
+          } catch (dbError) {
+            console.warn('Background sync failed, using local data:', dbError);
+          }
+        }, 50); // Minimal delay to not block UI
+        
+      } catch (error) {
+        console.error('Error loading achievements:', error);
+        setIsDataReady(true);
+        setIsLoading(false);
+      }
+    };
+
+    loadAchievements();
+  }, []);
+
+  // NEW: Map database achievements to the expected format
+  const mapDatabaseAchievementToDisplay = (dbAchievement: DatabaseAchievement) => {
+    // Define gradient colors based on rarity
+    const rarityColors = {
+      common: ['#6B7280', '#9CA3AF', '#D1D5DB'] as const,
+      rare: ['#3B82F6', '#60A5FA', '#93C5FD'] as const,
+      epic: ['#8B5CF6', '#A78BFA', '#C4B5FD'] as const,
+      legendary: ['#F59E0B', '#FBBF24', '#FCD34D'] as const,
+    };
+
+    // Static mapping for achievement icons to avoid dynamic require
+    const iconMapping: Record<string, any> = {
+      'sprout': require('../../assets/bigger-achievement-icons/Sprout-280px.png'),
+      'the-oak': require('../../assets/bigger-achievement-icons/Da-Oak-280px.png'),
+      'conqueror': require('../../assets/bigger-achievement-icons/Landmark-280px.png'),
+      'sun-kissed': require('../../assets/bigger-achievement-icons/Sun-280px.png'),
+      'deeply-rooted': require('../../assets/bigger-achievement-icons/Deeply-Rooted-280px.png'),
+      'blossoming': require('../../assets/bigger-achievement-icons/Blossom-280px.png'),
+    };
+
+    return {
+      id: dbAchievement.id,
+      title: dbAchievement.title,
+      description: dbAchievement.description,
+      progress: dbAchievement.progress,
+      maxProgress: dbAchievement.max_progress,
+      gradientColors: rarityColors[dbAchievement.rarity],
+      icon: 'custom' as const,
+      iconSource: iconMapping[dbAchievement.achievement_id] || require('../../assets/bigger-achievement-icons/Sprout-280px.png'), // Fallback to sprout icon
+      isUnlocked: dbAchievement.is_unlocked,
+    };
+  };
+
   // Enhanced safety check for theme colors
   if (!colors || 
       typeof colors !== 'object' || 
       !colors.primaryBackground || 
       !colors.primaryText ||
       !colors.backgroundGradient) {
-    console.warn('⚠️ AchievementsScreen: Theme colors not ready, using fallback');
-    // Return a minimal loading state
+    console.warn('⚠️ AchievementsScreen: Theme colors not ready, showing skeleton');
+    return <ScreenSkeleton showHeader={true} showContent={true} />;
+  }
+
+  // Create styles with validated colors
+  const styles = createStyles(colors);
+
+  // LIGHTNING FAST: Show data immediately, no skeleton loading
+  if (!isDataReady) {
     return (
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: '#000000',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 18 }}>Loading achievements...</Text>
+      <View style={styles.container}>
+        {/* Consistent background gradient */}
+        <LinearGradient
+          colors={colors.backgroundGradient}
+          style={styles.backgroundGradient}
+        />
+        
+        {/* Subtle starfield effect */}
+        <View style={styles.starfield}>
+          {starPositions.map((star, index) => (
+            <View
+              key={index}
+              style={[
+                styles.star,
+                {
+                  left: star.x,
+                  top: star.y,
+                  opacity: star.opacity,
+                  width: star.size,
+                  height: star.size,
+                  borderRadius: star.size / 2,
+                }
+              ]}
+            />
+          ))}
+        </View>
+        
+        {/* Content - ABSOLUTE POSITIONING to prevent jolting */}
+        <ScrollView 
+          style={[styles.content, { top: insets.top + 180 }]} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.achievementsGrid}>
+            {/* Empty state - will be replaced instantly */}
+          </View>
+        </ScrollView>
       </View>
     );
   }
+
+  // Use mapped achievements for display
+  const achievements = databaseAchievements.map(mapDatabaseAchievementToDisplay);
+  
+  const unlockedCount = databaseAchievements.filter(a => a.is_unlocked).length;
 
   const unlockAchievement = async (index: number) => {
     if (!unlockedAchievements.has(index)) {
@@ -486,112 +675,68 @@ const AchievementsScreen: React.FC = () => {
     }
   };
 
-  // Create styles with validated colors
-  const styles = createStyles(colors);
-
-  const achievements = [
-    {
-      title: "Sprout",
-      description: "First day without biting",
-      progress: 1,
-      maxProgress: 1,
-      gradientColors: ['#90EE90', '#32CD32', '#228B22', '#006400'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-icons/Da-Sprout.webp'),
-      isUnlocked: unlockedAchievements.has(0),
-    },
-    {
-      title: "Sun-kissed",
-      description: "A week of progress",
-      progress: 7,
-      maxProgress: 7,
-      gradientColors: ['#FFD700', '#FFA500', '#FF8C00', '#FF6B35'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-icons/sun-iconn.png'),
-      isUnlocked: unlockedAchievements.has(1),
-    },
-    {
-      title: "Deeply Rooted",
-      description: "One month milestone",
-      progress: 30,
-      maxProgress: 30,
-      gradientColors: ['#32CD32', '#228B22', '#006400'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-deeply-rooted-icon.webp'),
-      isUnlocked: unlockedAchievements.has(2),
-    },
-    {
-      title: "Blossoming",
-      description: "Two months of strength",
-      progress: 60,
-      maxProgress: 60,
-      gradientColors: ['#FF69B4', '#DA70D6', '#9370DB'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-icons/blossom-achievement-icon.webp'),
-      isUnlocked: unlockedAchievements.has(3),
-    },
-    {
-      title: "The Oak",
-      description: "Three months of mastery",
-      progress: 90,
-      maxProgress: 90,
-      gradientColors: ['#8A2BE2', '#4B0082', '#2E0854'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-icons/Da-Oak.webp'),
-      isUnlocked: unlockedAchievements.has(4),
-    },
-    {
-      title: "Conqueror",
-      description: "Six months of transformation",
-      progress: 180,
-      maxProgress: 180,
-      gradientColors: ['#FFD700', '#FFA500', '#FF4500'] as const,
-      icon: "custom" as const,
-      iconSource: require('../../assets/new-icons/landmark-icon-fixed.webp'),
-      isUnlocked: unlockedAchievements.has(5),
-    },
-  ];
-
-  const unlockedCount = achievements.filter(a => a.isUnlocked).length;
-
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Consistent background gradient */}
-                      <LinearGradient
-          colors={colors.backgroundGradient}
-          style={styles.backgroundGradient}
-        />
-        
-        {/* Subtle starfield effect */}
-        <View style={styles.starfield}>
-          {starPositions.map((star, index) => (
-            <View
-              key={index}
-              style={[
-                styles.star,
-                {
-                  left: star.x,
-                  top: star.y,
-                  opacity: star.opacity, // Use full opacity for maximum visibility
-                  width: star.size,
-                  height: star.size,
-                  borderRadius: star.size / 2,
-                }
-              ]}
-            />
-          ))}
-        </View>
-        
-        {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={colors.backgroundGradient}
+        style={styles.backgroundGradient}
+      />
+      
+      {/* Subtle starfield effect */}
+      <View style={styles.starfield}>
+        {starPositions.map((star, index) => (
+          <View
+            key={index}
+            style={[
+              styles.star,
+              {
+                left: star.x,
+                top: star.y,
+                opacity: star.opacity, // Use full opacity for maximum visibility
+                width: star.size,
+                height: star.size,
+                borderRadius: star.size / 2,
+              }
+            ]}
+          />
+        ))}
+      </View>
+      
+      {/* Header - ABSOLUTE POSITIONING to prevent jolting */}
+      <View style={[styles.header, { top: insets.top + 20 }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home' as never)}>
-            <Ionicons name="chevron-back" size={24} color={COLORS.primaryText} />
+            <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
           </TouchableOpacity>
-          <View style={styles.titleContainer}>
-            <Text style={styles.screenTitle}>Achievements</Text>
+          
+          {/* Centered title - using absolute positioning for perfect centering */}
+          <View style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Text style={[
+              styles.screenTitle, 
+              { 
+                color: colors.primaryText,
+                // Premium layered shadows - base shadow + accent shadow
+                textShadowColor: colors.primaryBackground,
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
+                // Additional premium accent shadow
+                shadowColor: colors.primaryAccent,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.1,
+                shadowRadius: 1,
+              }
+            ]}>Achievements</Text>
           </View>
-          <View style={styles.headerSpacer} />
+          
+          {/* Invisible spacer to maintain layout balance */}
+          <View style={{ width: 40, height: 40 }} />
         </View>
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
@@ -611,49 +756,48 @@ const AchievementsScreen: React.FC = () => {
             </LinearGradient>
           </View>
           <Text style={styles.progressText}>
-            {unlockedCount}/{achievements.length} achievements earned
+            {unlockedCount} of {achievements.length} achievements unlocked
           </Text>
-          
-          {/* Demo unlock button for testing */}
-          <TouchableOpacity 
-            style={{
-              backgroundColor: COLORS.primaryAccent,
-              paddingHorizontal: SPACING.md,
-              paddingVertical: SPACING.sm,
-              borderRadius: 20,
-              marginTop: SPACING.md,
-              alignSelf: 'center',
-              shadowColor: COLORS.primaryAccent,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.3,
-              shadowRadius: 4,
-              elevation: 4,
-            }}
-            onPress={() => {
-              const nextLockedIndex = achievements.findIndex((_, i) => !unlockedAchievements.has(i));
-              if (nextLockedIndex !== -1) {
-                // Enhanced haptic feedback for button press
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                unlockAchievement(nextLockedIndex);
-              } else {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={{
-              color: COLORS.primaryBackground,
-              fontWeight: '600',
-              fontSize: 12,
-            }}>
-              Unlock Next Achievement
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       
-      {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Content - ABSOLUTE POSITIONING to prevent jolting */}
+      <ScrollView 
+        style={[styles.content, { top: insets.top + 180 }]} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Test Buttons for Development */}
+        <View style={styles.testButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.testButton} 
+            onPress={() => unlockNextAchievement()}
+          >
+            <LinearGradient
+              colors={['#10B981', '#059669', '#047857']}
+              style={styles.testButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.testButtonText}>🔓 Unlock Next Achievement</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.testButton} 
+            onPress={() => resetAllAchievements()}
+          >
+            <LinearGradient
+              colors={['#EF4444', '#DC2626', '#B91C1C']}
+              style={styles.testButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.testButtonText}>🔄 Reset All Achievements</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+        
         <View style={styles.achievementsGrid}>
           {achievements.map((achievement, index) => (
             <AchievementBadge
@@ -665,10 +809,15 @@ const AchievementsScreen: React.FC = () => {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Achievement Overlay */}
+      {currentOverlay && (
+        <AchievementOverlay
+          achievement={currentOverlay}
+          isVisible={isOverlayVisible}
+          onHide={hideAchievementOverlay}
+        />
+      )}
+    </View>
   );
 };
-
-
-
-export default AchievementsScreen;

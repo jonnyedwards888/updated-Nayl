@@ -12,13 +12,15 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
 import { useStreak } from '../context/StreakContext';
 import sessionService from '../services/sessionService';
 import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
 import { BlurView } from 'expo-blur';
+import { UserAnalytics } from '../lib/supabase';
+import AnimatedProgressRing from '../components/AnimatedProgressRing';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,33 +32,12 @@ const AnalyticsScreen: React.FC = () => {
   const themeResult = useThemeGuaranteed();
   const colors = themeResult?.colors;
   const { elapsedSeconds } = useStreak();
+  const insets = useSafeAreaInsets();
   
-  // Calculate real progress data
-  const recoveryPercentage = sessionService.calculateBrainRewiringPercentage(elapsedSeconds);
-  const daysToRecovery = RECOVERY_TARGET_DAYS - Math.floor(elapsedSeconds / (24 * 60 * 60));
-  const estimatedRecoveryDate = new Date();
-  estimatedRecoveryDate.setDate(estimatedRecoveryDate.getDate() + daysToRecovery);
-
-  // Enhanced safety check for theme colors
-  if (!colors || 
-      typeof colors !== 'object' || 
-      !colors.primaryBackground || 
-      !colors.primaryText ||
-      !colors.backgroundGradient) {
-    console.warn('⚠️ AnalyticsScreen: Theme colors not ready, using fallback');
-    // Return a minimal loading state
-    return (
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: '#000000',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 18 }}>Loading analytics...</Text>
-      </View>
-    );
-  }
-
+  // Analytics data state for performance optimization
+  const [analyticsData, setAnalyticsData] = useState<UserAnalytics | null>(null);
+  
+  // Star positions state - moved before conditional returns
   const [starPositions, setStarPositions] = useState(() => 
     Array.from({ length: 25 }, () => ({
       x: Math.random() * width * 2,
@@ -69,7 +50,33 @@ const AnalyticsScreen: React.FC = () => {
     }))
   );
 
-  // Animated starfield
+  // Load analytics data using the optimized SessionService
+  useEffect(() => {
+    const loadAnalyticsData = async () => {
+      try {
+        // LIGHTNING FAST: Show data instantly from memory
+        const localAnalytics = await sessionService.getLocalAnalytics();
+        setAnalyticsData(localAnalytics);
+        
+        // Background sync (non-blocking, user doesn't wait)
+        setTimeout(async () => {
+          try {
+            const dbAnalytics = await sessionService.getAnalyticsData();
+            setAnalyticsData(dbAnalytics);
+          } catch (dbError) {
+            console.warn('Background sync failed, using local data:', dbError);
+          }
+        }, 50); // Minimal delay to not block UI
+        
+      } catch (error) {
+        console.error('Error loading analytics data:', error);
+      }
+    };
+
+    loadAnalyticsData();
+  }, []);
+
+  // Animated starfield - moved before conditional returns
   useEffect(() => {
     const starfieldInterval = setInterval(() => {
       setStarPositions(prevPositions => 
@@ -98,6 +105,26 @@ const AnalyticsScreen: React.FC = () => {
       clearInterval(starfieldInterval);
     };
   }, []);
+  
+  // Calculate real progress data using analytics data when available
+  const recoveryPercentage = sessionService.calculateBrainRewiringPercentage(elapsedSeconds);
+  const daysToRecovery = RECOVERY_TARGET_DAYS - Math.floor(elapsedSeconds / (24 * 60 * 60));
+  const estimatedRecoveryDate = new Date();
+  estimatedRecoveryDate.setDate(estimatedRecoveryDate.getDate() + daysToRecovery);
+
+  // Enhanced safety check for theme colors
+  if (!colors || 
+      typeof colors !== 'object' || 
+      !colors.primaryBackground || 
+      !colors.primaryText ||
+      !colors.backgroundGradient) {
+    console.warn('⚠️ AnalyticsScreen: Theme colors not ready, showing minimal loading');
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 18 }}>Loading theme...</Text>
+      </View>
+    );
+  }
 
   // Benefits data with multi-color icon system
   const benefits = [
@@ -113,46 +140,38 @@ const AnalyticsScreen: React.FC = () => {
       icon: 'custom',
       iconSource: require('../../assets/recovery-page-icons/healthy-nails.webp'),
       title: 'Healthier Nails',
-      description: 'Nails and cuticles recover, grow stronger, and look better.',
-      progress: 92,
-      color: '#0A4F6B', // Calming teal
+      description: 'Your nails are becoming stronger and more resilient.',
+      progress: 72,
+      color: '#FFB366', // Warm orange
     },
     {
       icon: 'custom',
       iconSource: require('../../assets/recovery-page-icons/new-meditation-icon.webp'),
       title: 'Reduced Stress',
       description: 'Break the cycle of anxiety and nervous habits.',
-      progress: 78,
-      color: '#F59E0B', // Warm warning amber
-    },
-    {
-      icon: 'custom',
-      iconSource: require('../../assets/recovery-page-icons/fewer-infections-icon.webp'),
-      title: 'Fewer Infections',
-      description: 'Lower risk of nail, skin, and mouth infections.',
-      progress: 88,
-      color: '#0EA5E9', // Soft info blue
-    },
-    {
-      icon: 'custom',
-      iconSource: require('../../assets/recovery-page-icons/willpower-icon.webp'),
-      title: 'Stronger Self-Control',
-      description: 'Build willpower and break the habit for good.',
-      progress: 73,
-      color: '#C1FF72', // Back to lime-green
+      progress: 68,
+      color: '#A8E6CF', // Soft mint
     },
     {
       icon: 'custom',
       iconSource: require('../../assets/recovery-page-icons/better-hygiene-icon.webp'),
       title: 'Better Hygiene',
-      description: 'Fewer germs and less risk of illness.',
-      progress: 95,
-      color: '#0A4F6B', // Back to teal
+      description: 'Eliminate bacteria and germs that can cause infections and illness.',
+      progress: 78,
+      color: '#FF6B9D', // Vibrant pink
+    },
+    {
+      icon: 'custom',
+      iconSource: require('../../assets/recovery-page-icons/willpower-icon.webp'),
+      title: 'Mental Discipline',
+      description: 'Build self-control and break negative habit patterns.',
+      progress: 65,
+      color: '#9B59B6', // Purple
     },
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Consistent background gradient with particle starfield (same as Home) */}
       <LinearGradient
         colors={colors.backgroundGradient}
@@ -180,8 +199,8 @@ const AnalyticsScreen: React.FC = () => {
         </View>
       </LinearGradient>
       
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Header - ABSOLUTE POSITIONING to prevent jolting */}
+      <View style={[styles.header, { top: insets.top + 20 }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home' as never)}>
             <Ionicons name="chevron-back" size={28} color={colors.primaryText} />
@@ -195,12 +214,16 @@ const AnalyticsScreen: React.FC = () => {
         </View>
       </View>
       
-      {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Content - ABSOLUTE POSITIONING to prevent jolting */}
+      <ScrollView 
+        style={[styles.content, { top: insets.top + 120 }]} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* Progress Section */}
         <View style={styles.progressSection}>
           <View style={styles.progressContainer}>
-            <ProgressRing progress={recoveryPercentage} size={360} strokeWidth={16} />
+            <AnimatedProgressRing progress={recoveryPercentage} size={360} strokeWidth={16} />
             <View style={styles.progressTextContainer}>
               <Text style={[styles.progressLabel, { color: colors.secondaryText }]}>RECOVERY</Text>
               <Text style={[styles.progressPercentage, { color: colors.primaryText }]}>{Math.round(recoveryPercentage)}%</Text>
@@ -267,9 +290,13 @@ const AnalyticsScreen: React.FC = () => {
                       </View>
                     </View>
                   </View>
-                  {index < benefits.length - 1 && (
-                    <View style={[styles.benefitDivider, { backgroundColor: colors.secondaryAccent }]} />
-                  )}
+                                     {index < benefits.length - 1 && (
+                     <View style={[styles.benefitDivider, { backgroundColor: colors.secondaryAccent }]} />
+                   )}
+                   {/* Ensure last benefit has proper bottom spacing */}
+                   {index === benefits.length - 1 && (
+                     <View style={{ height: SPACING.md }} />
+                   )}
                 </React.Fragment>
               ))}
             </View>
@@ -279,67 +306,27 @@ const AnalyticsScreen: React.FC = () => {
         {/* Bottom spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </SafeAreaView>
-  );
-};
-
-// Progress Ring Component
-const ProgressRing: React.FC<{ progress: number; size: number; strokeWidth: number }> = ({ 
-  progress, 
-  size, 
-  strokeWidth 
-}) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  
-  // Calculate stroke dash offset based on progress
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  return (
-    <View>
-      <Svg width={size} height={size}>
-        <Defs>
-          <SvgLinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#00D4FF" />
-            <Stop offset="50%" stopColor="#0099FF" />
-            <Stop offset="100%" stopColor="#0066FF" />
-          </SvgLinearGradient>
-        </Defs>
-        
-        {/* Background circle */}
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="rgba(255, 255, 255, 0.08)"
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        
-        {/* Progress circle */}
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="url(#progressGradient)"
-          strokeWidth={strokeWidth}
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
     </View>
   );
 };
 
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // Changed from '#0F172A' to transparent
+    backgroundColor: '#0F172A',
   },
-  backgroundContainer: {
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  starfield: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -351,17 +338,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 1,
   },
-  starfield: {
+  header: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-  },
-  header: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xxl,
     paddingBottom: SPACING.lg,
+    zIndex: 10,
   },
   headerTop: {
     flexDirection: 'row',
@@ -374,17 +357,25 @@ const styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   screenTitle: {
     ...TYPOGRAPHY.headingLarge,
     color: '#FFFFFF',
+    textAlign: 'center',
   },
   shareButton: {
     padding: SPACING.sm,
   },
   content: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: SPACING.lg,
+  },
+  contentContainer: {
+    paddingBottom: SPACING.xxl, // Increased padding to ensure all content is visible
   },
   progressSection: {
     alignItems: 'center',
@@ -410,13 +401,11 @@ const styles = StyleSheet.create({
   progressLabel: {
     ...TYPOGRAPHY.caption,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: SPACING.xs,
     letterSpacing: 1.2,
   },
   progressPercentage: {
     ...TYPOGRAPHY.displayLarge,
-    color: '#FFFFFF',
     marginBottom: SPACING.xs,
     textShadowColor: 'rgba(193, 255, 114, 0.6)',
     textShadowOffset: { width: 0, height: 0 },
@@ -425,13 +414,11 @@ const styles = StyleSheet.create({
   progressSubtext: {
     ...TYPOGRAPHY.bodyMedium,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: SPACING.xs,
     letterSpacing: 0.5,
   },
   progressTarget: {
     ...TYPOGRAPHY.caption,
-    color: '#94A3B8',
     opacity: 0.8,
   },
   recoveryDateContainer: {
@@ -440,62 +427,43 @@ const styles = StyleSheet.create({
   },
   recoveryDateLabel: {
     ...TYPOGRAPHY.bodyMedium,
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: SPACING.sm,
     fontWeight: '500',
-    lineHeight: 24,
   },
   recoveryDateBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: BORDER_RADIUS.lg,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     ...SHADOWS.card,
   },
   recoveryDateText: {
     ...TYPOGRAPHY.headingSmall,
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   motivationalContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     maxWidth: width - 80,
     ...SHADOWS.card,
   },
   motivationalText: {
     ...TYPOGRAPHY.bodyMedium,
-    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 24,
     fontWeight: '500',
+    lineHeight: 24,
   },
   bottomSpacing: {
     height: SPACING.lg,
-  },
-  backgroundGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    // Extend beyond safe area to cover the entire screen including below footer
-    minHeight: height + 100, // Add extra height to ensure coverage
   },
   divider: {
     height: 1,
     marginVertical: SPACING.md,
   },
   benefitsSection: {
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl, // Increased margin for better spacing
   },
   benefitsTitle: {
     ...TYPOGRAPHY.headingMedium,
@@ -505,9 +473,9 @@ const styles = StyleSheet.create({
   benefitsCard: {
     borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     ...SHADOWS.card,
     overflow: 'hidden',
+    minHeight: 400, // Ensure card has enough height for all benefits
   },
   benefitsBlur: {
     position: 'absolute',
@@ -517,12 +485,12 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   benefitsCardBody: {
-    padding: SPACING.lg,
+    padding: SPACING.xl, // Increased padding for better content visibility
   },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
+    alignItems: 'flex-start', // Changed from 'center' to 'flex-start' for better alignment
+    marginBottom: SPACING.lg, // Increased spacing between benefit rows for better visibility
   },
   benefitIcon: {
     width: 40,
@@ -531,15 +499,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
-    overflow: 'hidden', // Ensure the image doesn't overflow the circular bounds
+    overflow: 'hidden',
+    marginTop: 2, // Small top margin to align with the title text
   },
   benefitIconImage: {
-    width: '100%', // Fill the entire circular container
-    height: '100%', // Fill the entire circular container
-    borderRadius: 20, // Match the container's border radius
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
   benefitTextCol: {
     flex: 1,
+    paddingTop: 2, // Small top padding to align with the icon
   },
   benefitTitle: {
     ...TYPOGRAPHY.bodyMedium,
@@ -548,7 +518,8 @@ const styles = StyleSheet.create({
   },
   benefitDescription: {
     ...TYPOGRAPHY.bodySmall,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md, // Increased bottom margin
+    lineHeight: 22, // Increased line height for better readability
   },
   benefitProgressBg: {
     height: 8,
@@ -562,6 +533,16 @@ const styles = StyleSheet.create({
   benefitDivider: {
     height: 1,
     marginVertical: SPACING.sm,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+  },
+  loadingText: {
+    ...TYPOGRAPHY.headingLarge,
+    fontWeight: '700',
   },
 });
 

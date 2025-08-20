@@ -48,7 +48,44 @@ export interface UserStats {
   consecutive_days: number;
   last_login_date: string;
   total_days_logged_in: number;
+  successful_days_this_week: number;
   profile_picture_url?: string;
   created_at: string;
   updated_at: string;
+}
+
+// Partial types for selective queries
+export type UserStatsPartial = Partial<UserStats>;
+export type UserSessionPartial = Partial<UserSession>;
+
+// Dashboard and Analytics view types
+export interface UserDashboard {
+  user_id: string;
+  current_streak_seconds: number;
+  total_streak_seconds: number;
+  start_time: string;
+  last_reset_time: string;
+  last_login_date: string;
+  consecutive_days: number;
+  longest_streak_seconds: number;
+  total_episodes: number;
+  total_days_logged_in: number;
+  successful_days_this_week: number;
+  total_achievements: number;
+  unlocked_achievements: number;
+}
+
+export interface UserAnalytics {
+  user_id: string;
+  current_streak_seconds: number;
+  total_streak_seconds: number;
+  start_time: string;
+  longest_streak_seconds: number;
+  total_episodes: number;
+  consecutive_days: number;
+  total_days_logged_in: number;
+  successful_days_this_week: number;
+  total_triggers: number;
+  days_with_triggers: number;
+  avg_trigger_time: number;
 }

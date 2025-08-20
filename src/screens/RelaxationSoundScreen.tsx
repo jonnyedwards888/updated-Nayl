@@ -197,7 +197,7 @@ const RelaxationSoundScreen: React.FC<RelaxationSoundScreenProps> = ({ route, na
             colors={['#8B5CF6', '#A78BFA']}
             style={styles.backButtonGradient}
           >
-            <Ionicons name="chevron-back" size={20} color={COLORS.primaryText} />
+            <Ionicons name="chevron-back" size={28} color={COLORS.primaryText} />
           </LinearGradient>
         </TouchableOpacity>
       </View>

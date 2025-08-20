@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../constants/theme';
-import { typography, body, buttonText } from '../constants/typography';
+import { COLORS, SHADOWS, TYPOGRAPHY } from '../constants/theme';
+import { body, buttonText } from '../constants/typography';
 import sessionService from '../services/sessionService';
 import hapticService, { HapticType, HapticIntensity } from '../services/hapticService';
 import { useStreak } from '../context/StreakContext';
@@ -217,7 +217,7 @@ const EditStreakScreen: React.FC<EditStreakScreenProps> = ({ navigation, route }
               navigation.goBack();
             }}
           >
-            <Ionicons name="arrow-back" size={24} color={COLORS.primaryText} />
+            <Ionicons name="arrow-back" size={28} color={COLORS.primaryText} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Streak Date</Text>
           <TouchableOpacity
@@ -327,9 +327,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    ...typography.h2,
+    ...TYPOGRAPHY.headingLarge,
     color: COLORS.primaryText,
     fontWeight: '700',
+    letterSpacing: 0.5, // Improved letter spacing
+    // Premium layered shadows - base shadow + accent shadow
+    textShadowColor: COLORS.primaryBackground,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    // Additional premium accent shadow
+    shadowColor: COLORS.primaryAccent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   saveButton: {
     paddingHorizontal: SPACING.md,
@@ -356,7 +366,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   currentStreakTime: {
-    ...typography.h1,
+    ...TYPOGRAPHY.displayMedium,
     color: COLORS.primaryText,
     fontWeight: '900',
     fontSize: 32,
@@ -408,9 +418,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalTitle: {
-    ...typography.h2,
+    ...TYPOGRAPHY.headingMedium,
     color: COLORS.primaryText,
     fontWeight: '700',
+    letterSpacing: 0.3, // Improved letter spacing
+    // Premium layered shadows - base shadow + accent shadow
+    textShadowColor: COLORS.primaryBackground,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+    // Additional premium accent shadow
+    shadowColor: COLORS.primaryAccent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 0.5,
   },
   modalConfirmButton: {
     paddingHorizontal: SPACING.md,

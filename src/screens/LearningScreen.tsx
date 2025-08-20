@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemeGuaranteed } from '../context/ThemeContext';
-import { COLORS } from '../constants/theme';
+import { COLORS, TYPOGRAPHY } from '../constants/theme';
 import { body, buttonText } from '../constants/typography';
 
 const { width, height } = Dimensions.get('window');
@@ -157,10 +157,24 @@ const LearningScreen: React.FC<LearningScreenProps> = ({ navigation }) => {
             colors={['#8B5CF6', '#A78BFA']}
             style={styles.backButtonGradient}
           >
-            <Ionicons name="chevron-back" size={20} color={COLORS.primaryText} />
+            <Ionicons name="chevron-back" size={28} color={COLORS.primaryText} />
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={[styles.screenTitle, { color: colors.primaryText }]}>Learning</Text>
+        <Text style={[
+           styles.screenTitle, 
+           { 
+             color: colors.primaryText,
+             // Premium layered shadows - base shadow + accent shadow
+             textShadowColor: colors.primaryBackground,
+             textShadowOffset: { width: 0, height: 1 },
+             textShadowRadius: 2,
+             // Additional premium accent shadow
+             shadowColor: colors.primaryAccent,
+             shadowOffset: { width: 0, height: 0 },
+             shadowOpacity: 0.1,
+             shadowRadius: 1,
+           }
+         ]}>Learning</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -272,10 +286,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   screenTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+    ...TYPOGRAPHY.headingLarge,
     flex: 1,
     textAlign: 'center',
+    fontWeight: '700',
+    letterSpacing: 0.5, // Improved letter spacing
   },
   headerSpacer: {
     width: 50,

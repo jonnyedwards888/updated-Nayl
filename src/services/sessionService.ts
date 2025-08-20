@@ -1,4 +1,4 @@
-import { supabase, UserSession, UserStats } from '../lib/supabase';
+import { supabase, UserSession, UserStats, UserStatsPartial, UserDashboard, UserAnalytics } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SESSION_KEY = '@nayl_current_session';
@@ -158,6 +158,12 @@ class SessionService {
   // Update session with current streak
   async updateSession(currentStreakSeconds: number): Promise<void> {
     try {
+      // Validate streak value to prevent extremely large numbers
+      if (currentStreakSeconds < 0 || currentStreakSeconds > 3153600000) { // Max ~100 years in seconds
+        console.warn(`Invalid streak value: ${currentStreakSeconds} seconds. Clamping to reasonable range.`);
+        currentStreakSeconds = Math.max(0, Math.min(currentStreakSeconds, 3153600000));
+      }
+
       const userId = await this.getCurrentUserId();
       const now = new Date().toISOString();
 
@@ -165,7 +171,7 @@ class SessionService {
         .from('user_sessions')
         .update({
           current_streak_seconds: currentStreakSeconds,
-          total_streak_seconds: currentStreakSeconds, // For now, we'll update this logic later
+          // Don't update total_streak_seconds here - it should only be updated when a streak ends
           updated_at: now,
         })
         .eq('user_id', userId);
@@ -189,8 +195,18 @@ class SessionService {
   // Update streak start time (for editing streak)
   async updateStreakStartTime(newStartTime: Date): Promise<void> {
     try {
+      // Validate date to prevent extremely old or future dates
+      const now = new Date();
+      const minDate = new Date(now.getFullYear() - 100, 0, 1); // Max 100 years ago
+      const maxDate = new Date(now.getFullYear() + 10, 11, 31); // Max 10 years in future
+      
+      if (newStartTime < minDate || newStartTime > maxDate) {
+        console.warn(`Invalid start time: ${newStartTime}. Clamping to reasonable range.`);
+        newStartTime = new Date(Math.max(minDate.getTime(), Math.min(newStartTime.getTime(), maxDate.getTime())));
+      }
+
       const userId = await this.getCurrentUserId();
-      const now = new Date().toISOString();
+      const nowISO = now.toISOString();
       const newStartTimeISO = newStartTime.toISOString();
       
 
@@ -200,7 +216,7 @@ class SessionService {
         .update({
           start_time: newStartTimeISO,
           last_reset_time: newStartTimeISO, // Also update last_reset_time for consistency
-          updated_at: now,
+          updated_at: nowISO,
         })
         .eq('user_id', userId);
 
@@ -216,6 +232,18 @@ class SessionService {
     try {
       const userId = await this.getCurrentUserId();
       const now = new Date().toISOString();
+
+      // Get current streak before resetting
+      const { data: currentSession } = await supabase
+        .from('user_sessions')
+        .select('current_streak_seconds')
+        .eq('user_id', userId)
+        .single();
+
+      // If there's a current streak, add it to the total before resetting
+      if (currentSession && currentSession.current_streak_seconds > 0) {
+        await this.addCompletedStreakToTotal(currentSession.current_streak_seconds);
+      }
 
       // Update session to reset streak
       const { error: sessionError } = await supabase
@@ -246,7 +274,7 @@ class SessionService {
       // Add timeout and better error handling
       const { data, error } = await supabase
         .from('user_sessions')
-        .select('*')
+        .select('id, user_id, start_time, current_streak_seconds, total_streak_seconds, last_reset_time, last_login_date, created_at, updated_at')
         .eq('user_id', userId)
         .single();
 
@@ -289,13 +317,19 @@ class SessionService {
   // Update user statistics
   async updateUserStats(currentStreakSeconds: number, trigger?: string): Promise<void> {
     try {
+      // Validate streak value to prevent extremely large numbers
+      if (currentStreakSeconds < 0 || currentStreakSeconds > 3153600000) { // Max ~100 years in seconds
+        console.warn(`Invalid streak value in updateUserStats: ${currentStreakSeconds} seconds. Clamping to reasonable range.`);
+        currentStreakSeconds = Math.max(0, Math.min(currentStreakSeconds, 3153600000));
+      }
+
       const userId = await this.getCurrentUserId();
       const now = new Date().toISOString();
 
-      // Get current stats
+      // Get current stats - selective query
       const { data: existingStats, error: fetchError } = await supabase
         .from('user_stats')
-        .select('*')
+        .select('id, total_episodes, longest_streak_seconds, total_streak_seconds')
         .eq('user_id', userId)
         .single();
 
@@ -310,7 +344,9 @@ class SessionService {
 
       if (existingStats) {
         // Update existing stats
-        updateData.total_streak_seconds = existingStats.total_streak_seconds + currentStreakSeconds;
+        // Don't add current streak to total every time - this causes integer overflow
+        // Only update current streak, total_streak_seconds should be managed separately
+        updateData.current_streak_seconds = currentStreakSeconds;
         
         // Update longest streak if current streak is longer
         if (currentStreakSeconds > existingStats.longest_streak_seconds) {
@@ -338,7 +374,7 @@ class SessionService {
             total_episodes: trigger ? 1 : 0,
             longest_streak_seconds: currentStreakSeconds,
             current_streak_seconds: currentStreakSeconds,
-            total_streak_seconds: currentStreakSeconds,
+            total_streak_seconds: 0, // Start with 0, don't set to current streak
           });
 
         if (insertError) throw insertError;
@@ -352,10 +388,16 @@ class SessionService {
   // Update longest streak if current streak exceeds it
   async updateLongestStreakIfNeeded(currentStreakSeconds: number): Promise<void> {
     try {
+      // Validate streak value to prevent extremely large numbers
+      if (currentStreakSeconds < 0 || currentStreakSeconds > 3153600000) { // Max ~100 years in seconds
+        console.warn(`Invalid streak value in updateLongestStreakIfNeeded: ${currentStreakSeconds} seconds. Clamping to reasonable range.`);
+        currentStreakSeconds = Math.max(0, Math.min(currentStreakSeconds, 3153600000));
+      }
+
       const userId = await this.getCurrentUserId();
       const now = new Date().toISOString();
 
-      // Get current stats
+      // Get current stats - selective query
       const { data: existingStats, error: fetchError } = await supabase
         .from('user_stats')
         .select('longest_streak_seconds')
@@ -391,6 +433,52 @@ class SessionService {
       // Removed the else clause that was logging every time the streak was unchanged
     } catch (error) {
       console.error('Error updating longest streak:', error);
+      // Don't throw error to avoid breaking the main streak tracking
+    }
+  }
+
+  // Add completed streak to total when streak ends
+  async addCompletedStreakToTotal(completedStreakSeconds: number): Promise<void> {
+    try {
+      // Validate streak value to prevent extremely large numbers
+      if (completedStreakSeconds < 0 || completedStreakSeconds > 3153600000) { // Max ~100 years in seconds
+        console.warn(`Invalid completed streak value: ${completedStreakSeconds} seconds. Clamping to reasonable range.`);
+        completedStreakSeconds = Math.max(0, Math.min(completedStreakSeconds, 3153600000));
+      }
+
+      const userId = await this.getCurrentUserId();
+      const now = new Date().toISOString();
+
+      // Get current stats
+      const { data: existingStats, error: fetchError } = await supabase
+        .from('user_stats')
+        .select('total_streak_seconds')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.warn('Error fetching stats for total streak update:', fetchError);
+        return;
+      }
+
+      if (existingStats) {
+        // Add the completed streak to the total
+        const newTotal = (existingStats.total_streak_seconds || 0) + completedStreakSeconds;
+        
+        const { error: updateError } = await supabase
+          .from('user_stats')
+          .update({
+            total_streak_seconds: newTotal,
+            updated_at: now,
+          })
+          .eq('user_id', userId);
+
+        if (updateError) {
+          console.warn('Error updating total streak seconds:', updateError);
+        }
+      }
+    } catch (error) {
+      console.error('Error adding completed streak to total:', error);
       // Don't throw error to avoid breaking the main streak tracking
     }
   }
@@ -439,14 +527,14 @@ class SessionService {
     }
   }
 
-  // Get user statistics
-  async getUserStats(): Promise<UserStats | null> {
+  // Get user statistics - selective query
+  async getUserStats(): Promise<UserStatsPartial | null> {
     try {
       const userId = await this.getCurrentUserId();
 
       const { data, error } = await supabase
         .from('user_stats')
-        .select('*')
+        .select('total_episodes, longest_streak_seconds, current_streak_seconds, total_streak_seconds, consecutive_days, total_days_logged_in, last_login_date')
         .eq('user_id', userId)
         .single();
 
@@ -468,7 +556,7 @@ class SessionService {
     return Math.min(percentage, 100); // Cap at 100%
   }
 
-  // Get consecutive days for flame counter
+  // Get consecutive days for flame counter - selective query
   async getConsecutiveDays(): Promise<number> {
     try {
       const userId = await this.getCurrentUserId();
@@ -489,7 +577,7 @@ class SessionService {
     }
   }
 
-  // Get weekly check-in data
+  // Get weekly check-in data - optimized query
   async getWeeklyCheckIns(): Promise<boolean[]> {
     try {
       const userId = await this.getCurrentUserId();
@@ -497,50 +585,32 @@ class SessionService {
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
       
-      // Try to get data from user_sessions first
-      try {
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .select('last_login_date')
-          .eq('user_id', userId)
-          .gte('last_login_date', startOfWeek.toISOString().split('T')[0])
-          .order('last_login_date', { ascending: true });
+      // Use the optimized query with proper indexing
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('last_login_date')
+        .eq('user_id', userId)
+        .gte('last_login_date', startOfWeek.toISOString().split('T')[0])
+        .order('last_login_date', { ascending: true });
 
-        if (error) {
-          console.warn('Error getting weekly check-ins from user_sessions:', error);
-          throw error;
-        }
+      if (error) {
+        console.warn('Error getting weekly check-ins:', error);
+        throw error;
+      }
 
-        // Create array of 7 days (Sunday to Saturday)
-        const weekDays = Array(7).fill(false);
-        
-        // Mark days that have been logged in
-        data?.forEach(session => {
+      // Create array of 7 days (Sunday to Saturday)
+      const weekDays = Array(7).fill(false);
+      
+      // Mark days that have been logged in
+      data?.forEach(session => {
+        if (session.last_login_date) {
           const loginDate = new Date(session.last_login_date);
           const dayIndex = loginDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
           weekDays[dayIndex] = true;
-        });
-
-        return weekDays;
-      } catch (columnError) {
-        // If last_login_date column doesn't exist, fall back to user_stats
-        console.log('last_login_date column not found, using user_stats fallback');
-        const stats = await this.getUserStats();
-        const consecutiveDays = stats?.consecutive_days || 0;
-        
-        // Create a simple fallback based on consecutive days
-        const weekDays = Array(7).fill(false);
-        if (consecutiveDays > 0) {
-          // Mark today and previous days as checked in based on consecutive days
-          const today = new Date().getDay();
-          for (let i = 0; i < Math.min(consecutiveDays, 7); i++) {
-            const dayIndex = (today - i + 7) % 7;
-            weekDays[dayIndex] = true;
-          }
         }
-        
-        return weekDays;
-      }
+      });
+
+      return weekDays;
     } catch (error) {
       console.error('Error getting weekly check-ins:', error);
       return Array(7).fill(false);
@@ -580,7 +650,7 @@ class SessionService {
     }
   }
 
-  // Get longest streak in seconds
+  // Get longest streak in seconds - selective query
   async getLongestStreakSeconds(): Promise<number> {
     try {
       const userId = await this.getCurrentUserId();
@@ -601,6 +671,93 @@ class SessionService {
       console.error('Error getting longest streak:', error);
       return 0;
     }
+  }
+
+  // NEW: Get dashboard data using the performance view
+  async getDashboardData(): Promise<UserDashboard | null> {
+    try {
+      const userId = await this.getCurrentUserId();
+
+      const { data, error } = await supabase
+        .from('user_dashboard')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.warn('Error getting dashboard data:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting dashboard data:', error);
+      return null;
+    }
+  }
+
+  // NEW: Get analytics data using the performance view
+  async getAnalyticsData(): Promise<UserAnalytics | null> {
+    try {
+      const userId = await this.getCurrentUserId();
+
+      const { data, error } = await supabase
+        .from('user_analytics')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.warn('Error getting analytics data:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting analytics data:', error);
+      return null;
+    }
+  }
+
+  // Get local dashboard data for instant display (fallback while database syncs)
+  async getLocalDashboard(): Promise<UserDashboard> {
+    // Return mock data for instant display
+    // This simulates what would come from memory/cache
+    return {
+      user_id: 'default_user',
+      current_streak_seconds: 604800, // 7 days
+      total_streak_seconds: 1209600, // 14 days
+      start_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+      last_reset_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      last_login_date: new Date().toISOString().split('T')[0],
+      consecutive_days: 7,
+      longest_streak_seconds: 604800, // 7 days
+      total_episodes: 12,
+      total_days_logged_in: 15,
+      successful_days_this_week: 5,
+      total_achievements: 6,
+      unlocked_achievements: 2,
+    };
+  }
+
+  // Get local analytics for instant display (fallback while database syncs)
+  async getLocalAnalytics(): Promise<UserAnalytics> {
+    // Return mock data for instant display
+    // This simulates what would come from memory/cache
+    return {
+      user_id: 'default_user',
+      current_streak_seconds: 604800, // 7 days
+      total_streak_seconds: 1209600, // 14 days
+      start_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+      longest_streak_seconds: 604800, // 7 days
+      total_episodes: 12,
+      consecutive_days: 7,
+      total_days_logged_in: 15,
+      successful_days_this_week: 5,
+      total_triggers: 8,
+      days_with_triggers: 5,
+      avg_trigger_time: 14.5, // 2:30 PM average
+    };
   }
 
   // Get current streak in seconds
@@ -702,6 +859,7 @@ class SessionService {
             last_login_date: today,
             consecutive_days: 1,
             total_days_logged_in: 1,
+            successful_days_this_week: 0,
             total_episodes: 0,
             longest_streak_seconds: 0,
             current_streak_seconds: 0,
@@ -713,6 +871,69 @@ class SessionService {
       }
     } catch (error) {
       console.error('Error updating daily login tracking:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Track successful days (days without episodes)
+  async updateSuccessfulDaysTracking(today: string, hadEpisode: boolean): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+
+      // Get current stats
+      const { data: existingStats, error: fetchError } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      if (existingStats) {
+        // Check if we're in a new week (Monday = 1, Sunday = 0)
+        const todayDate = new Date(today);
+        const dayOfWeek = todayDate.getDay();
+        const isNewWeek = dayOfWeek === 1; // Monday
+
+        let newSuccessfulDays = existingStats.successful_days_this_week || 0;
+
+        if (isNewWeek) {
+          // Reset for new week
+          newSuccessfulDays = hadEpisode ? 0 : 1;
+        } else {
+          // Same week, update count
+          if (!hadEpisode) {
+            newSuccessfulDays = Math.min(7, newSuccessfulDays + 1);
+          }
+          // If had episode, don't increment (but don't reset either)
+        }
+
+        // Update stats
+        const { error: updateError } = await supabase
+          .from('user_stats')
+          .update({
+            successful_days_this_week: newSuccessfulDays,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingStats.id);
+
+        if (updateError) throw updateError;
+      }
+    } catch (error) {
+      console.error('Error updating successful days tracking:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Mark today as a successful day (no episodes)
+  async markTodayAsSuccessful(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      await this.updateSuccessfulDaysTracking(today, false);
+    } catch (error) {
+      console.error('Error marking today as successful:', error);
       throw error;
     }
   }

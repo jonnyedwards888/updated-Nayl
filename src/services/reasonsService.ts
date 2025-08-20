@@ -14,24 +14,39 @@ class ReasonsService {
     return 'default_user';
   }
 
+
+
   async getReasons(): Promise<Reason[]> {
     try {
       const userId = this.getUserId();
       
-      // Use Supabase to get reasons from database
+      // Try to get reasons from database
       const { data, error } = await supabase
         .from('user_reasons')
-        .select('*')
+        .select('id, reason_text, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching reasons:', error);
-        // If RLS fails, return empty array instead of crashing
+        
+        // If the error is about missing table/column, return empty array
+        if (error.code === '42703' || error.code === '42P01') {
+          console.log('Table or column does not exist, returning empty array');
+          return [];
+        }
+        
+        // For other errors, return empty array instead of crashing
         return [];
       }
 
-      return data || [];
+      // Map database columns to Reason interface
+      return (data || []).map(reason => ({
+        id: reason.id,
+        text: reason.reason_text,
+        created_at: reason.created_at,
+        user_id: userId
+      }));
     } catch (error) {
       console.error('Error getting reasons:', error);
       return [];
@@ -43,11 +58,11 @@ class ReasonsService {
       const userId = this.getUserId();
       
       const newReason = {
-        text: text.trim(),
+        reason_text: text.trim(),
         user_id: userId,
       };
 
-      // Save to Supabase - temporarily disable RLS check
+      // Save to Supabase
       const { data, error } = await supabase
         .from('user_reasons')
         .insert([newReason])
@@ -56,7 +71,19 @@ class ReasonsService {
 
       if (error) {
         console.error('Supabase error:', error);
-        // If RLS fails, create a local reason object as fallback
+        
+        // If table/column doesn't exist, create a local reason object as fallback
+        if (error.code === '42703' || error.code === '42P01') {
+          console.log('Table or column does not exist, creating local reason');
+          return {
+            id: Date.now().toString(),
+            text: text.trim(),
+            created_at: new Date().toISOString(),
+            user_id: userId,
+          };
+        }
+        
+        // For other errors, create a local reason object as fallback
         return {
           id: Date.now().toString(),
           text: text.trim(),
