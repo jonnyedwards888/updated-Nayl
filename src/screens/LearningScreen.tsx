@@ -153,12 +153,7 @@ const LearningScreen: React.FC<LearningScreenProps> = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <LinearGradient
-            colors={['#8B5CF6', '#A78BFA']}
-            style={styles.backButtonGradient}
-          >
-            <Ionicons name="chevron-back" size={28} color={COLORS.primaryText} />
-          </LinearGradient>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={[
            styles.screenTitle, 
@@ -270,18 +265,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  backButtonGradient: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },

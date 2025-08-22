@@ -24,11 +24,22 @@ const { width, height } = Dimensions.get('window');
 interface OnboardingWelcomeProps {
   onStart: () => void;
   onLogin: () => void;
+  onSkipToPlan?: () => void; // New prop for skipping to plan
   isEmbedded?: boolean;
   isVisible?: boolean;
 }
 
-const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onStart, onLogin, isEmbedded = false, isVisible = true }) => {
+const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onStart, onLogin, onSkipToPlan, isEmbedded = false, isVisible = true }) => {
+  // Debug logging for star visibility
+  React.useEffect(() => {
+    console.log('OnboardingWelcome: Component mounted, stars should be visible');
+    console.log('isEmbedded:', isEmbedded);
+    console.log('isVisible:', isVisible);
+    console.log('Stars container style:', styles.starsContainer);
+    console.log('Base star style:', styles.star);
+    console.log('Sample star1 style:', styles.star1);
+  }, [isEmbedded, isVisible]);
+
   // Animation values for staggered loading sequence
   const titleOpacity = useSharedValue(0);
   const titleTranslateY = useSharedValue(-30);
@@ -47,19 +58,6 @@ const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onStart, onLogin,
 
   // Button press animation
   const buttonScale = useSharedValue(1);
-
-  // Premium starfield system
-  const [starPositions, setStarPositions] = useState(() => 
-    Array.from({ length: 50 }, () => ({
-      x: Math.random() * width * 2,
-      y: Math.random() * height,
-      opacity: Math.random() * 0.6 + 0.2,
-      speed: Math.random() * 0.08 + 0.02,
-      directionX: (Math.random() - 0.5) * 1.2,
-      directionY: (Math.random() - 0.5) * 1.2,
-      size: Math.random() * 1.8 + 0.8,
-    }))
-  );
 
   // Start animations when component mounts or becomes visible
   useEffect(() => {
@@ -90,36 +88,6 @@ const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onStart, onLogin,
       buttonsTranslateY.value = withDelay(800, withTiming(0, { duration: 700, easing: Easing.out(Easing.cubic) }));
     }
   }, [isVisible]);
-
-  // Animate starfield
-  useEffect(() => {
-    const starfieldInterval = setInterval(() => {
-      setStarPositions(prevPositions => 
-        prevPositions.map(star => {
-          const newX = star.x + (star.directionX * star.speed);
-          const newY = star.y + (star.directionY * star.speed);
-          
-          let wrappedX = newX;
-          let wrappedY = newY;
-          
-          if (newX < -50) wrappedX = width + 50;
-          if (newX > width + 50) wrappedX = -50;
-          if (newY < -50) wrappedY = height + 50;
-          if (newY > height + 50) wrappedY = -50;
-          
-          return {
-            ...star,
-            x: wrappedX,
-            y: wrappedY,
-          };
-        })
-      );
-    }, 50);
-
-    return () => {
-      clearInterval(starfieldInterval);
-    };
-  }, []);
 
   const handleStart = () => {
     hapticService.trigger(HapticType.ACHIEVEMENT, HapticIntensity.PROMINENT);
@@ -196,23 +164,46 @@ const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onStart, onLogin,
     ]}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       
-      {/* Starfield Background */}
-      {!isEmbedded && starPositions.map((star, index) => (
-        <Animated.View
-          key={index}
-          style={[
-            styles.star,
-            {
-              left: star.x,
-              top: star.y,
-              opacity: star.opacity,
-              width: star.size,
-              height: star.size,
-              borderRadius: star.size / 2,
-            },
-          ]}
-        />
-      ))}
+              {/* Subtle Floating Stars - Only in bottom half to avoid distracting from text */}
+        <View 
+          style={styles.starsContainer}
+          onLayout={() => console.log('Stars container layout completed')}
+        >
+          <View style={[styles.star, styles.star4]} />
+          <View style={[styles.star, styles.star5]} />
+          <View style={[styles.star, styles.star6]} />
+          <View style={[styles.star, styles.star10]} />
+          <View style={[styles.star, styles.star12]} />
+          <View style={[styles.star, styles.star16]} />
+          <View style={[styles.star, styles.star17]} />
+          <View style={[styles.star, styles.star18]} />
+          <View style={[styles.star, styles.star22]} />
+          <View style={[styles.star, styles.star23]} />
+          <View style={[styles.star, styles.star25]} />
+          <View style={[styles.star, styles.star26]} />
+          <View style={[styles.star, styles.star27]} />
+          <View style={[styles.star, styles.star33]} />
+          <View style={[styles.star, styles.star34]} />
+          <View style={[styles.star, styles.star35]} />
+          <View style={[styles.star, styles.star36]} />
+          <View style={[styles.star, styles.star41]} />
+          <View style={[styles.star, styles.star42]} />
+          <View style={[styles.star, styles.star43]} />
+          <View style={[styles.star, styles.star44]} />
+          <View style={[styles.star, styles.star45]} />
+          <View style={[styles.star, styles.star50]} />
+        </View>
+      
+      {/* Temporary Skip Button for Testing */}
+      {onSkipToPlan && (
+        <TouchableOpacity 
+          style={styles.tempSkipButton} 
+          onPress={onSkipToPlan}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.tempSkipButtonText}>⚡ Skip to Plan</Text>
+        </TouchableOpacity>
+      )}
       
       {/* Main Content Section */}
       <View style={styles.contentSection}>
@@ -295,23 +286,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
     paddingTop: 60,
+    zIndex: 10, // Ensure content section is above stars
   },
   
   appTitle: {
-    fontSize: 72, // Much bigger header
-    fontWeight: 'bold',
+    fontSize: 68, // Slightly refined size for premium feel
+    fontWeight: '800', // Bolder weight for more impact
     color: '#FFFFFF',
-    marginBottom: 20,
+    marginBottom: 24, // Better spacing
     textAlign: 'center',
+    lineHeight: 76, // Proper line height for premium typography
+    letterSpacing: -0.5, // Tighter letter spacing for modern look
+    textShadowColor: 'rgba(0, 0, 0, 0.3)', // Subtle text shadow
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    zIndex: 10, // Ensure title is above stars
   },
   
   tagline: {
-    fontSize: 22, // Slightly bigger subtext
-    color: '#FFFFFF',
+    fontSize: 20, // Refined size for premium feel
+    fontWeight: '500', // Medium weight for better hierarchy
+    color: 'rgba(255, 255, 255, 0.95)', // Slightly more refined color
     textAlign: 'center',
-    marginBottom: 48,
+    marginBottom: 52, // Better spacing
     lineHeight: 28,
-    opacity: 0.9,
+    letterSpacing: 0.2, // Subtle letter spacing for readability
+    textShadowColor: 'rgba(0, 0, 0, 0.2)', // Very subtle text shadow
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    zIndex: 10, // Ensure tagline is above stars
   },
   
   startButton: {
@@ -335,17 +338,27 @@ const styles = StyleSheet.create({
   },
   
   buttonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 19, // Slightly larger for better impact
+    fontWeight: '700', // Bolder weight for premium feel
     color: '#FFFFFF',
     textAlign: 'center',
+    letterSpacing: 0.3, // Subtle letter spacing for premium look
+    textShadowColor: 'rgba(0, 0, 0, 0.2)', // Subtle text shadow
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    zIndex: 10, // Ensure button text is above stars
   },
   
   loginLink: {
     fontSize: 16,
-    color: '#FFFFFF',
+    fontWeight: '500', // Medium weight for better hierarchy
+    color: 'rgba(255, 255, 255, 0.9)', // More refined color
     textDecorationLine: 'underline',
-    opacity: 0.8,
+    letterSpacing: 0.1, // Subtle letter spacing
+    textShadowColor: 'rgba(0, 0, 0, 0.1)', // Very subtle text shadow
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+    zIndex: 10, // Ensure login link is above stars
   },
   
   imageSection: {
@@ -353,6 +366,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 20,
+    zIndex: 10, // Ensure image section is above stars
   },
   
   bottomImage: {
@@ -362,14 +376,477 @@ const styles = StyleSheet.create({
   },
   
   // Premium Starfield Styles
+  starsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  
+  // Star size variations for depth
+  starSmall: {
+    width: 1,
+    height: 1,
+    borderRadius: 0.5,
+    opacity: 0.3,
+  },
+  starMedium: {
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    opacity: 0.5,
+  },
+  starLarge: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    opacity: 0.7,
+  },
   star: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
+    width: 1.5, // Very small for subtlety
+    height: 1.5, // Very small for subtlety
+    borderRadius: 0.75, // Smaller radius
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.4, // Very subtle
+    shadowRadius: 1, // Minimal shadow
+  },
+  star1: {
+    top: '15%',
+    left: '20%',
+    opacity: 0.4, // Much more subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.8)', // More transparent
+    shadowColor: '#9333EA',
+    width: 1.5, // Slightly smaller for depth
+    height: 1.5,
+    borderRadius: 0.75,
+  },
+  star2: {
+    top: '25%',
+    right: '30%',
+    opacity: 0.6, // More subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.7)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 2.5, // Slightly larger for depth
+    height: 2.5,
+    borderRadius: 1.25,
+  },
+  star3: {
+    top: '40%',
+    left: '10%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(139, 92, 246, 0.6)', // More transparent
+    shadowColor: '#8B5CF6',
+    width: 1, // Smallest for depth
+    height: 1,
+    borderRadius: 0.5,
+  },
+  star4: {
+    top: '60%',
+    right: '15%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(96, 165, 250, 0.7)', // More transparent
+    shadowColor: '#60A5FA',
+    width: 2, // Medium for depth
+    height: 2,
+    borderRadius: 1,
+  },
+  star5: {
+    top: '75%',
+    left: '40%',
+    opacity: 0.7, // Slightly more visible
+    backgroundColor: 'rgba(168, 85, 247, 0.8)', // More transparent
+    shadowColor: '#A855F7',
+    width: 3, // Larger for depth
+    height: 3,
+    borderRadius: 1.5,
+  },
+  star6: {
+    top: '85%',
+    right: '25%',
+    opacity: 0.4, // Subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.6)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 1.5, // Small for depth
+    height: 1.5,
+    borderRadius: 0.75,
+  },
+  star7: {
+    top: '35%',
+    left: '70%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.7)', // More transparent
+    shadowColor: '#9333EA',
+    width: 2.5, // Medium for depth
+    height: 2.5,
+    borderRadius: 1.25,
+  },
+  star8: {
+    top: '50%',
+    right: '60%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(139, 92, 246, 0.5)', // More transparent
+    shadowColor: '#8B5CF6',
+    width: 1, // Smallest for depth
+    height: 1,
+    borderRadius: 0.5,
+  },
+  star9: {
+    top: '20%',
+    left: '50%',
+    opacity: 0.6, // Subtle
+    backgroundColor: 'rgba(96, 165, 250, 0.7)', // More transparent
+    shadowColor: '#60A5FA',
+    width: 3, // Larger for depth
+    height: 3,
+    borderRadius: 1.5,
+  },
+  star10: {
+    top: '70%',
+    left: '80%',
+    opacity: 0.4, // Subtle
+    backgroundColor: 'rgba(168, 85, 247, 0.6)', // More transparent
+    shadowColor: '#A855F7',
+    width: 2, // Medium for depth
+    height: 2,
+    borderRadius: 1,
+  },
+  star11: {
+    top: '30%',
+    left: '85%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.7)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 2, // Medium for depth
+    height: 2,
+    borderRadius: 1,
+  },
+  star12: {
+    top: '80%',
+    left: '25%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.5)', // More transparent
+    shadowColor: '#9333EA',
+    width: 1, // Smallest for depth
+    height: 1,
+    borderRadius: 0.5,
+  },
+  star13: {
+    top: '10%',
+    left: '10%',
+    opacity: 0.6, // Subtle
+    backgroundColor: 'rgba(139, 92, 246, 0.7)', // More transparent
+    shadowColor: '#8B5CF6',
+    width: 3, // Larger for depth
+    height: 3,
+    borderRadius: 1.5,
+  },
+  star14: {
+    top: '20%',
+    right: '20%',
+    opacity: 0.4, // Subtle
+    backgroundColor: 'rgba(96, 165, 250, 0.6)', // More transparent
+    shadowColor: '#60A5FA',
+    width: 1.5, // Small for depth
+    height: 1.5,
+    borderRadius: 0.75,
+  },
+  star15: {
+    top: '40%',
+    left: '30%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(168, 85, 247, 0.7)', // More transparent
+    shadowColor: '#A855F7',
+    width: 2.5, // Medium-large for depth
+    height: 2.5,
+    borderRadius: 1.25,
+  },
+  star16: {
+    top: '60%',
+    right: '30%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.5)', // More transparent
+    shadowColor: '#9333EA',
+    width: 2, // Medium for depth
+    height: 2,
+    borderRadius: 1,
+  },
+  star17: {
+    top: '80%',
+    left: '40%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.7)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 3, // Larger for depth
+    height: 3,
+    borderRadius: 1.5,
+  },
+  star18: {
+    top: '90%',
+    right: '40%',
+    opacity: 0.4, // Subtle
+    backgroundColor: 'rgba(139, 92, 246, 0.6)', // More transparent
+    shadowColor: '#8B5CF6',
+    width: 1.5, // Small for depth
+    height: 1.5,
+    borderRadius: 0.75,
+  },
+  star19: {
+    top: '5%',
+    left: '60%',
+    opacity: 0.6, // Subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.7)', // More transparent
+    shadowColor: '#9333EA',
+    width: 2.5, // Medium-large for depth
+    height: 2.5,
+    borderRadius: 1.25,
+  },
+  star20: {
+    top: '15%',
+    right: '10%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.5)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 1, // Smallest for depth
+    height: 1,
+    borderRadius: 0.5,
+  },
+  star21: {
+    top: '25%',
+    left: '80%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star22: {
+    top: '45%',
+    right: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star23: {
+    top: '55%',
+    left: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star24: {
+    top: '65%',
+    right: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star25: {
+    top: '75%',
+    left: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star26: {
+    top: '85%',
+    right: '70%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star27: {
+    top: '95%',
+    left: '70%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star28: {
+    top: '8%',
+    left: '40%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star29: {
+    top: '18%',
+    right: '50%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star30: {
+    top: '28%',
+    left: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star31: {
+    top: '38%',
+    right: '80%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star32: {
+    top: '48%',
+    left: '75%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star33: {
+    top: '58%',
+    right: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star34: {
+    top: '68%',
+    left: '55%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star35: {
+    top: '78%',
+    right: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star36: {
+    top: '88%',
+    left: '25%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star37: {
+    top: '12%',
+    left: '85%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star38: {
+    top: '22%',
+    right: '25%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star39: {
+    top: '32%',
+    left: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star40: {
+    top: '42%',
+    right: '60%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star41: {
+    top: '52%',
+    left: '20%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star42: {
+    top: '62%',
+    right: '75%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star43: {
+    top: '72%',
+    left: '65%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star44: {
+    top: '82%',
+    right: '35%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star45: {
+    top: '92%',
+    left: '35%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star46: {
+    top: '7%',
+    left: '30%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star47: {
+    top: '17%',
+    right: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star48: {
+    top: '27%',
+    left: '95%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star49: {
+    top: '37%',
+    right: '20%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star50: {
+    top: '47%',
+    left: '5%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+
+  tempSkipButton: {
+    position: 'absolute',
+    top: 80, // Position below status bar
+    right: 20, // Position on the right side
+    backgroundColor: 'rgba(236, 72, 153, 0.9)', // Semi-transparent pink
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    zIndex: 1000, // High z-index to be above other elements
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#EC4899',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  tempSkipButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });
 

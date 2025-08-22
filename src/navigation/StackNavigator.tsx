@@ -12,6 +12,8 @@ import ReasonsScreen from '../screens/ReasonsScreen';
 import TriggerHistoryScreen from '../screens/TriggerHistoryScreen';
 import RelaxationSoundScreen from '../screens/RelaxationSoundScreen';
 import LearningScreen from '../screens/LearningScreen';
+import ArticlesScreen from '../screens/ArticlesScreen';
+import ArticleDetailScreen from '../screens/ArticleDetailScreen';
 import OnboardingQuestionnaireScreen from '../screens/OnboardingQuestionnaireScreen';
 import OnboardingTestScreen from '../screens/OnboardingTestScreen';
 import OnboardingFlowTestScreen from '../screens/OnboardingFlowTestScreen';
@@ -80,6 +82,9 @@ export function LibraryStack() {
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
       <Stack.Screen name="RelaxationSound" component={RelaxationSoundScreen} />
       <Stack.Screen name="Learning" component={LearningScreen} />
+      <Stack.Screen name="Articles" component={ArticlesScreen} />
+      <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+      <Stack.Screen name="Meditation" component={MeditationScreen} />
     </Stack.Navigator>
   );
 }

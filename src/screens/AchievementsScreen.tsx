@@ -199,18 +199,12 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     zIndex: 10,
   },
   headerTop: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: SPACING.lg,
     position: 'relative',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   titleContainer: {
     position: 'absolute',
     left: 0,
@@ -218,9 +212,7 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerSpacer: {
-    width: 40,
-  },
+
   screenTitle: {
     ...TYPOGRAPHY.displayMedium,
     color: themeColors.primaryText,
@@ -706,10 +698,6 @@ export default function AchievementsScreen() {
       {/* Header - ABSOLUTE POSITIONING to prevent jolting */}
       <View style={[styles.header, { top: insets.top + 20 }]}>
         <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home' as never)}>
-            <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
-          </TouchableOpacity>
-          
           {/* Centered title - using absolute positioning for perfect centering */}
           <View style={{
             position: 'absolute',
@@ -734,9 +722,6 @@ export default function AchievementsScreen() {
               }
             ]}>Achievements</Text>
           </View>
-          
-          {/* Invisible spacer to maintain layout balance */}
-          <View style={{ width: 40, height: 40 }} />
         </View>
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>

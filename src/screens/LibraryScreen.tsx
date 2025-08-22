@@ -37,6 +37,9 @@ type LibraryStackParamList = {
   Achievements: undefined;
   RelaxationSound: { soundType: string };
   Learning: undefined;
+  Articles: undefined;
+  ArticleDetail: { articleId: string };
+  Meditation: undefined;
 };
 
 interface LibraryScreenProps {
@@ -187,13 +190,19 @@ const LibraryScreen: React.FC = () => {
       >
         {/* Four Main Buttons */}
         <View style={styles.categoriesContainer}>
-          <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
-            <LinearGradient
-              colors={['#7C2D12', '#9A3412', '#C2410C', '#EA580C']}
-              style={styles.categoryButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Articles'))}>
+              <LinearGradient
+                colors={[
+                  'rgb(240, 38, 38)',    //rgb(247, 54, 54) - Bright red
+                  'rgb(202, 18, 18)',    //rgb(204, 22, 22) - Medium red
+                  'rgb(193, 28, 28)',    // #991B1B - Dark red
+                  'rgb(115, 19, 19)'     // #7F1D1D - Deep red
+                ]}
+                locations={[0, 0.3, 0.7, 1]}
+                style={styles.categoryButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
               {/* Premium texture overlay */}
               <View style={styles.buttonTextureOverlay} />
               
@@ -206,13 +215,19 @@ const LibraryScreen: React.FC = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
-              <LinearGradient
-                colors={['#1E3A8A', '#1E40AF', '#3B82F6', '#60A5FA']}
-                style={styles.categoryButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Achievements'))}>
+                <LinearGradient
+                  colors={[
+                    'rgba(30, 64, 175, 1)',   // #1E40AF - Deep blue
+                    'rgba(59, 130, 246, 1)',   // #3B82F6 - Medium blue
+                    'rgba(96, 165, 250, 1)',   // #60A5FA - Light blue
+                    'rgba(147, 197, 253, 1)'   // #93C5FD - Pale blue
+                  ]}
+                  locations={[0, 0.3, 0.7, 1]}
+                  style={styles.categoryButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
                 {/* Premium texture overlay */}
                 <View style={styles.buttonTextureOverlay} />
                 
@@ -225,13 +240,19 @@ const LibraryScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Learning'))}>
-            <LinearGradient
-              colors={['#064E3B', '#065F46', '#047857', '#10B981']}
-              style={styles.categoryButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Learning'))}>
+              <LinearGradient
+                colors={[
+                  'rgb(0, 113, 77)',     // #059669 - Deep green
+                  'rgb(0, 116, 77)',     // #10B981 - Medium green
+                  'rgb(24, 147, 102)',     // #34D399 - Light green
+                  'rgb(58, 177, 130)'     // #6EE7B7 - Pale green
+                ]}
+                locations={[0, 0.3, 0.7, 1]}
+                style={styles.categoryButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
               {/* Premium texture overlay */}
               <View style={styles.buttonTextureOverlay} />
               
@@ -244,13 +265,19 @@ const LibraryScreen: React.FC = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => {})}>
-              <LinearGradient
-                colors={['#78350F', '#92400E', '#B45309', '#F59E0B']}
-                style={styles.categoryButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Meditation'))}>
+                <LinearGradient
+                  colors={[
+                    'rgba(217, 119, 6, 1)',    // #D97706 - Deep orange
+                    'rgba(245, 158, 11, 1)',    // #F59E0B - Medium orange
+                    'rgba(251, 191, 36, 1)',    // #FBBF24 - Light orange
+                    'rgba(252, 211, 77, 1)'     // #FCD34D - Pale orange
+                  ]}
+                  locations={[0, 0.3, 0.7, 1]}
+                  style={styles.categoryButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
                 {/* Premium texture overlay */}
                 <View style={styles.buttonTextureOverlay} />
                 

@@ -34,23 +34,58 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ onStartTrial }) => {
         locations={[0, 0.3, 0.7, 1]}
       />
       
-      {/* Premium Starfield Effect */}
-      <View style={styles.starfield}>
-        {Array.from({ length: 50 }, (_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.star,
-              {
-                left: Math.random() * 400,
-                top: Math.random() * 800,
-                opacity: Math.random() * 0.4 + 0.1,
-                width: Math.random() * 1.5 + 0.5,
-                height: Math.random() * 1.5 + 0.5,
-              }
-            ]}
-          />
-        ))}
+      {/* Subtle Floating Stars (same as PersonalizedPlanScreen) */}
+      <View style={styles.starsContainer}>
+        <View style={[styles.star, styles.star1]} />
+        <View style={[styles.star, styles.star2]} />
+        <View style={[styles.star, styles.star3]} />
+        <View style={[styles.star, styles.star4]} />
+        <View style={[styles.star, styles.star5]} />
+        <View style={[styles.star, styles.star6]} />
+        <View style={[styles.star, styles.star7]} />
+        <View style={[styles.star, styles.star8]} />
+        <View style={[styles.star, styles.star9]} />
+        <View style={[styles.star, styles.star10]} />
+        <View style={[styles.star, styles.star11]} />
+        <View style={[styles.star, styles.star12]} />
+        <View style={[styles.star, styles.star13]} />
+        <View style={[styles.star, styles.star14]} />
+        <View style={[styles.star, styles.star15]} />
+        <View style={[styles.star, styles.star16]} />
+        <View style={[styles.star, styles.star17]} />
+        <View style={[styles.star, styles.star18]} />
+        <View style={[styles.star, styles.star19]} />
+        <View style={[styles.star, styles.star20]} />
+        <View style={[styles.star, styles.star21]} />
+        <View style={[styles.star, styles.star22]} />
+        <View style={[styles.star, styles.star23]} />
+        <View style={[styles.star, styles.star24]} />
+        <View style={[styles.star, styles.star25]} />
+        <View style={[styles.star, styles.star26]} />
+        <View style={[styles.star, styles.star27]} />
+        <View style={[styles.star, styles.star28]} />
+        <View style={[styles.star, styles.star29]} />
+        <View style={[styles.star, styles.star30]} />
+        <View style={[styles.star, styles.star31]} />
+        <View style={[styles.star, styles.star32]} />
+        <View style={[styles.star, styles.star33]} />
+        <View style={[styles.star, styles.star34]} />
+        <View style={[styles.star, styles.star35]} />
+        <View style={[styles.star, styles.star36]} />
+        <View style={[styles.star, styles.star37]} />
+        <View style={[styles.star, styles.star38]} />
+        <View style={[styles.star, styles.star39]} />
+        <View style={[styles.star, styles.star40]} />
+        <View style={[styles.star, styles.star41]} />
+        <View style={[styles.star, styles.star42]} />
+        <View style={[styles.star, styles.star43]} />
+        <View style={[styles.star, styles.star44]} />
+        <View style={[styles.star, styles.star45]} />
+        <View style={[styles.star, styles.star46]} />
+        <View style={[styles.star, styles.star47]} />
+        <View style={[styles.star, styles.star48]} />
+        <View style={[styles.star, styles.star49]} />
+        <View style={[styles.star, styles.star50]} />
       </View>
 
       {/* Content Container */}
@@ -161,13 +196,12 @@ const styles = StyleSheet.create({
   },
   star: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 1,
-    shadowColor: 'rgba(255, 255, 255, 0.6)',
+    width: 1.5, // Much smaller for subtlety
+    height: 1.5, // Much smaller for subtlety
+    borderRadius: 0.75, // Smaller radius
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.4, // Very subtle
+    shadowRadius: 1, // Minimal shadow
   },
   content: {
     flex: 1,
@@ -290,6 +324,400 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     textAlign: 'center',
     fontWeight: '400',
+  },
+  starsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  
+  // Star size variations for depth
+  starSmall: {
+    width: 1,
+    height: 1,
+    borderRadius: 0.5,
+    opacity: 0.3,
+  },
+  starMedium: {
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    opacity: 0.5,
+  },
+  starLarge: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    opacity: 0.7,
+  },
+  star1: {
+    top: '15%',
+    left: '20%',
+    opacity: 0.4, // Much more subtle
+    backgroundColor: 'rgba(147, 51, 234, 0.8)', // More transparent
+    shadowColor: '#9333EA',
+    width: 1.5, // Slightly smaller for depth
+    height: 1.5,
+    borderRadius: 0.75,
+  },
+  star2: {
+    top: '25%',
+    right: '30%',
+    opacity: 0.6, // More subtle
+    backgroundColor: 'rgba(59, 130, 246, 0.7)', // More transparent
+    shadowColor: '#3B82F6',
+    width: 2.5, // Slightly larger for depth
+    height: 2.5,
+    borderRadius: 1.25,
+  },
+  star3: {
+    top: '40%',
+    left: '10%',
+    opacity: 0.3, // Very subtle
+    backgroundColor: 'rgba(139, 92, 246, 0.6)', // More transparent
+    shadowColor: '#8B5CF6',
+    width: 1, // Smallest for depth
+    height: 1,
+    borderRadius: 0.5,
+  },
+  star4: {
+    top: '60%',
+    right: '15%',
+    opacity: 0.5, // Subtle
+    backgroundColor: 'rgba(96, 165, 250, 0.7)', // More transparent
+    shadowColor: '#60A5FA',
+    width: 2, // Medium for depth
+    height: 2,
+    borderRadius: 1,
+  },
+  star5: {
+    top: '75%',
+    left: '40%',
+    opacity: 0.7, // Slightly more visible
+    backgroundColor: 'rgba(168, 85, 247, 0.8)', // More transparent
+    shadowColor: '#A855F7',
+    width: 3, // Larger for depth
+    height: 3,
+    borderRadius: 1.5,
+  },
+  star6: {
+    top: '85%',
+    right: '25%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star7: {
+    top: '35%',
+    left: '70%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star8: {
+    top: '50%',
+    right: '60%',
+    opacity: 0.6,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star9: {
+    top: '20%',
+    left: '50%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star10: {
+    top: '70%',
+    left: '80%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star11: {
+    top: '30%',
+    left: '85%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star12: {
+    top: '80%',
+    left: '25%',
+    opacity: 0.6,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star13: {
+    top: '10%',
+    left: '10%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star14: {
+    top: '20%',
+    right: '20%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star15: {
+    top: '40%',
+    left: '30%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star16: {
+    top: '60%',
+    right: '30%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star17: {
+    top: '80%',
+    left: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star18: {
+    top: '90%',
+    right: '40%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star19: {
+    top: '5%',
+    left: '60%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star20: {
+    top: '15%',
+    right: '10%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star21: {
+    top: '25%',
+    left: '80%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star22: {
+    top: '45%',
+    right: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star23: {
+    top: '55%',
+    left: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star24: {
+    top: '65%',
+    right: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star25: {
+    top: '75%',
+    left: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star26: {
+    top: '85%',
+    right: '70%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star27: {
+    top: '95%',
+    left: '70%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star28: {
+    top: '8%',
+    left: '40%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star29: {
+    top: '18%',
+    right: '50%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star30: {
+    top: '28%',
+    left: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star31: {
+    top: '38%',
+    right: '80%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star32: {
+    top: '48%',
+    left: '75%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star33: {
+    top: '58%',
+    right: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star34: {
+    top: '68%',
+    left: '55%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star35: {
+    top: '78%',
+    right: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star36: {
+    top: '88%',
+    left: '25%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star37: {
+    top: '12%',
+    left: '85%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star38: {
+    top: '22%',
+    right: '25%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star39: {
+    top: '32%',
+    left: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star40: {
+    top: '42%',
+    right: '60%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star41: {
+    top: '52%',
+    left: '20%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star42: {
+    top: '62%',
+    right: '75%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star43: {
+    top: '72%',
+    left: '65%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star44: {
+    top: '82%',
+    right: '35%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star45: {
+    top: '92%',
+    left: '35%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star46: {
+    top: '7%',
+    left: '30%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star47: {
+    top: '17%',
+    right: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star48: {
+    top: '27%',
+    left: '95%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star49: {
+    top: '37%',
+    right: '20%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star50: {
+    top: '47%',
+    left: '5%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
   },
 });
 

@@ -16,9 +16,18 @@ const { width, height } = Dimensions.get('window');
 interface OnboardingWelcomeProps {
   onStart: () => void;
   onSkip: () => void;
+  onSkipToPlan?: () => void; // New prop for skipping to plan
 }
 
-const OnboardingWelcomeClean: React.FC<OnboardingWelcomeProps> = ({ onStart, onSkip }) => {
+const OnboardingWelcomeClean: React.FC<OnboardingWelcomeProps> = ({ onStart, onSkip, onSkipToPlan }) => {
+  // Debug logging for star visibility
+  React.useEffect(() => {
+    console.log('OnboardingWelcomeClean: Component mounted, stars should be visible');
+    console.log('Stars container style:', styles.starsContainer);
+    console.log('Base star style:', styles.star);
+    console.log('Sample star1 style:', styles.star1);
+  }, []);
+
   const handleStart = () => {
     hapticService.trigger(HapticType.SUCCESS, HapticIntensity.NORMAL);
     onStart();
@@ -42,24 +51,104 @@ const OnboardingWelcomeClean: React.FC<OnboardingWelcomeProps> = ({ onStart, onS
       />
       
       {/* Subtle Starfield Background */}
-      <View style={styles.starfield}>
-        {[...Array(30)].map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.star,
-              {
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.4 + 0.1,
-              },
-            ]}
-          />
-        ))}
+      <View 
+        style={styles.starsContainer}
+        onLayout={() => console.log('Stars container layout completed')}
+      >
+        {/* Debug: Add a very visible test star */}
+        <View 
+          style={{
+            position: 'absolute',
+            width: 20,
+            height: 20,
+            backgroundColor: 'red',
+            borderRadius: 10,
+            top: '50%',
+            left: '50%',
+            zIndex: 10,
+          }}
+          onLayout={() => console.log('DEBUG: Red test star rendered')}
+        />
+        <View 
+          style={[styles.star, styles.star1]} 
+          onLayout={() => console.log('Star 1 rendered at:', styles.star1.left, styles.star1.top)}
+        />
+        <View 
+          style={[styles.star, styles.star2]} 
+          onLayout={() => console.log('Star 2 rendered at:', styles.star2.right, styles.star2.top)}
+        />
+        <View 
+          style={[styles.star, styles.star3]} 
+          onLayout={() => console.log('Star 3 rendered at:', styles.star3.left, styles.star3.top)}
+        />
+        <View 
+          style={[styles.star, styles.star4]} 
+          onLayout={() => console.log('Star 4 rendered at:', styles.star4.right, styles.star4.top)}
+        />
+        <View 
+          style={[styles.star, styles.star5]} 
+          onLayout={() => console.log('Star 5 rendered at:', styles.star5.left, styles.star5.top)}
+        />
+        <View style={[styles.star, styles.star6]} />
+        <View style={[styles.star, styles.star7]} />
+        <View style={[styles.star, styles.star8]} />
+        <View style={[styles.star, styles.star9]} />
+        <View style={[styles.star, styles.star10]} />
+        <View style={[styles.star, styles.star11]} />
+        <View style={[styles.star, styles.star12]} />
+        <View style={[styles.star, styles.star13]} />
+        <View style={[styles.star, styles.star14]} />
+        <View style={[styles.star, styles.star15]} />
+        <View style={[styles.star, styles.star16]} />
+        <View style={[styles.star, styles.star17]} />
+        <View style={[styles.star, styles.star18]} />
+        <View style={[styles.star, styles.star19]} />
+        <View style={[styles.star, styles.star20]} />
+        <View style={[styles.star, styles.star21]} />
+        <View style={[styles.star, styles.star22]} />
+        <View style={[styles.star, styles.star23]} />
+        <View style={[styles.star, styles.star24]} />
+        <View style={[styles.star, styles.star25]} />
+        <View style={[styles.star, styles.star26]} />
+        <View style={[styles.star, styles.star27]} />
+        <View style={[styles.star, styles.star28]} />
+        <View style={[styles.star, styles.star29]} />
+        <View style={[styles.star, styles.star30]} />
+        <View style={[styles.star, styles.star31]} />
+        <View style={[styles.star, styles.star32]} />
+        <View style={[styles.star, styles.star33]} />
+        <View style={[styles.star, styles.star34]} />
+        <View style={[styles.star, styles.star35]} />
+        <View style={[styles.star, styles.star36]} />
+        <View style={[styles.star, styles.star37]} />
+        <View style={[styles.star, styles.star38]} />
+        <View style={[styles.star, styles.star39]} />
+        <View style={[styles.star, styles.star40]} />
+        <View style={[styles.star, styles.star41]} />
+        <View style={[styles.star, styles.star42]} />
+        <View style={[styles.star, styles.star43]} />
+        <View style={[styles.star, styles.star44]} />
+        <View style={[styles.star, styles.star45]} />
+        <View style={[styles.star, styles.star46]} />
+        <View style={[styles.star, styles.star47]} />
+        <View style={[styles.star, styles.star48]} />
+        <View style={[styles.star, styles.star49]} />
+        <View style={[styles.star, styles.star50]} />
       </View>
 
       {/* Top Section - Welcome Text */}
       <View style={styles.topSection}>
+        {/* Temporary Skip Button for Testing */}
+        {onSkipToPlan && (
+          <TouchableOpacity 
+            style={styles.tempSkipButton} 
+            onPress={onSkipToPlan}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.tempSkipButtonText}>⚡ Skip to Plan</Text>
+          </TouchableOpacity>
+        )}
+        
         <Text style={styles.welcomeTitle}>Welcome</Text>
         <Text style={styles.welcomeSubtitle}>to Nayl</Text>
         <Text style={styles.tagline}>
@@ -126,12 +215,365 @@ const styles = StyleSheet.create({
   
   star: {
     position: 'absolute',
-    width: 2,
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-    opacity: 0.1,
-    transform: [{ scale: 0.5 }],
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1.0,
+    shadowRadius: 6,
+    // Debug: Add a border to make stars more visible during development
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  star1: {
+    top: '15%',
+    left: '20%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star2: {
+    top: '25%',
+    right: '30%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star3: {
+    top: '40%',
+    left: '10%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star4: {
+    top: '60%',
+    right: '15%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star5: {
+    top: '75%',
+    left: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star6: {
+    top: '85%',
+    right: '25%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star7: {
+    top: '35%',
+    left: '70%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star8: {
+    top: '50%',
+    right: '60%',
+    opacity: 0.6,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star9: {
+    top: '20%',
+    left: '50%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star10: {
+    top: '70%',
+    left: '80%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star11: {
+    top: '30%',
+    left: '85%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star12: {
+    top: '80%',
+    left: '25%',
+    opacity: 0.6,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star13: {
+    top: '10%',
+    left: '10%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star14: {
+    top: '20%',
+    right: '20%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star15: {
+    top: '40%',
+    left: '30%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star16: {
+    top: '60%',
+    right: '30%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star17: {
+    top: '80%',
+    left: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star18: {
+    top: '90%',
+    right: '40%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star19: {
+    top: '5%',
+    left: '60%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star20: {
+    top: '15%',
+    right: '10%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star21: {
+    top: '25%',
+    left: '80%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star22: {
+    top: '45%',
+    right: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star23: {
+    top: '55%',
+    left: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star24: {
+    top: '65%',
+    right: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star25: {
+    top: '75%',
+    left: '5%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star26: {
+    top: '85%',
+    right: '70%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star27: {
+    top: '95%',
+    left: '70%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star28: {
+    top: '8%',
+    left: '40%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star29: {
+    top: '18%',
+    right: '50%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star30: {
+    top: '28%',
+    left: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star31: {
+    top: '38%',
+    right: '80%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star32: {
+    top: '48%',
+    left: '75%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star33: {
+    top: '58%',
+    right: '15%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star34: {
+    top: '68%',
+    left: '55%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star35: {
+    top: '78%',
+    right: '90%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star36: {
+    top: '88%',
+    left: '25%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star37: {
+    top: '12%',
+    left: '85%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star38: {
+    top: '22%',
+    right: '25%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star39: {
+    top: '32%',
+    left: '45%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star40: {
+    top: '42%',
+    right: '60%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star41: {
+    top: '52%',
+    left: '20%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star42: {
+    top: '62%',
+    right: '75%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star43: {
+    top: '72%',
+    left: '65%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star44: {
+    top: '82%',
+    right: '35%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star45: {
+    top: '92%',
+    left: '35%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
+  },
+  star46: {
+    top: '7%',
+    left: '30%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(139, 92, 246, 1.0)',
+    shadowColor: '#8B5CF6',
+  },
+  star47: {
+    top: '17%',
+    right: '40%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(96, 165, 250, 1.0)',
+    shadowColor: '#60A5FA',
+  },
+  star48: {
+    top: '27%',
+    left: '95%',
+    opacity: 0.7,
+    backgroundColor: 'rgba(168, 85, 247, 1.0)',
+    shadowColor: '#A855F7',
+  },
+  star49: {
+    top: '37%',
+    right: '20%',
+    opacity: 0.8,
+    backgroundColor: 'rgba(147, 51, 234, 1.0)',
+    shadowColor: '#9333EA',
+  },
+  star50: {
+    top: '47%',
+    left: '5%',
+    opacity: 0.9,
+    backgroundColor: 'rgba(59, 130, 246, 1.0)',
+    shadowColor: '#3B82F6',
   },
   
   // Top Section
@@ -143,7 +585,7 @@ const styles = StyleSheet.create({
   
   welcomeTitle: {
     fontSize: 52,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 4,
@@ -155,7 +597,7 @@ const styles = StyleSheet.create({
   
   welcomeSubtitle: {
     fontSize: 52,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 32,
@@ -229,6 +671,26 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     letterSpacing: 0.3,
   },
+
+  // Temporary Skip Button
+  tempSkipButton: {
+    position: 'absolute',
+    top: height * 0.05, // Adjust as needed
+    right: width * 0.05, // Adjust as needed
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+  },
+
+  tempSkipButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textDecorationLine: 'underline',
+  },
   
   // Bottom Section
   bottomSection: {
@@ -245,6 +707,19 @@ const styles = StyleSheet.create({
     height: height * 0.5,
     resizeMode: 'cover',
   },
+
+  // New styles for NaylProUpgradeScreen stars
+  starsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1, // Changed from -1 to 1 to ensure stars are above background
+    overflow: 'hidden',
+  },
+
+
 });
 
 export default OnboardingWelcomeClean;

@@ -24,6 +24,7 @@ import PsychologicalFeedbackService, { FeedbackType, PsychologicalIntensity } fr
 import PanicModal from '../components/PanicModal';
 import ResetModal from '../components/ResetModal';
 import TipsModal from '../components/TipsModal';
+import ColorPickerModal from '../components/ColorPickerModal';
 import ProgressRing from '../components/ProgressRing';
 import SwirlingOrb from '../components/SwirlingOrb';
 import CircularActionButton from '../components/CircularActionButton';
@@ -118,6 +119,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   
   // Reset modal state
   const [isResetModalVisible, setIsResetModalVisible] = useState(false);
+  
+  // Color picker modal state
+  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetAnimationSeconds, setResetAnimationSeconds] = useState(0);
   
@@ -586,6 +590,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   };
 
+  // Handle progress circle press for color picker
+  const handleProgressCirclePress = () => {
+    setIsColorPickerVisible(true);
+    hapticService.trigger(HapticType.LIGHT_TAP, HapticIntensity.SUBTLE);
+  };
+
 
   return (
     <PerformanceMeasureView screenName="HomeScreen">
@@ -737,6 +747,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   strokeWidth={10}
                   color={isDayCompleteAndUnclaimed ? '#FFFFFF' : COLORS.primaryAccent}
                   backgroundColor={isDayCompleteAndUnclaimed ? "rgba(255, 255, 255, 0.3)" : "rgba(193, 255, 114, 0.2)"}
+                  onPress={isDayCompleteAndUnclaimed ? undefined : handleProgressCirclePress}
                 />
               </SwirlingOrb>
             </View>
@@ -932,6 +943,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <TipsModal
         visible={isTipsModalVisible}
         onClose={() => setIsTipsModalVisible(false)}
+      />
+
+      {/* Color Picker Modal Overlay */}
+      <ColorPickerModal
+        isVisible={isColorPickerVisible}
+        onClose={() => setIsColorPickerVisible(false)}
       />
 
       {/* Streak Overlay */}

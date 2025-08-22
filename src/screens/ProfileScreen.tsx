@@ -1046,15 +1046,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Final Success Message */}
-        <View style={{ alignItems: 'center', paddingVertical: SPACING.lg, marginBottom: SPACING.xl }}>
-          <Text style={{ color: colors.primaryText, fontSize: 20, fontWeight: 'bold' }}>
-            🎉 ProfileScreen Complete!
-          </Text>
-          <Text style={{ color: colors.secondaryText, fontSize: 16, marginTop: 10, textAlign: 'center' }}>
-            All functionality restored with proper theming and background
-          </Text>
-        </View>
+
       </ScrollView>
 
       {/* Custom Name Edit Modal */}

@@ -41,7 +41,7 @@ const SPACING = {
   xxxl: 64,
 };
 
-// Ultra-simple typewriter component
+// Premium typewriter component with strategic haptics
 const TypewriterText: React.FC<{ 
   messages: string[]; 
   speed?: number; 
@@ -49,116 +49,92 @@ const TypewriterText: React.FC<{
   isVisible: boolean;
 }> = ({ 
   messages, 
-  speed = 50,
+  speed = 12, // Fast premium typing like QUITTR app
   onComplete,
   isVisible
 }) => {
   const [displayedText, setDisplayedText] = useState('');
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const hasStartedRef = useRef(false);
+  const currentIndexRef = useRef(0);
+  const charIndexRef = useRef(0);
 
-  // Handle visibility changes
   useEffect(() => {
-    if (!isVisible) {
-      // Stop typing when not visible
+    if (!isVisible || !messages || messages.length === 0) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      hasStartedRef.current = false;
       return;
     }
-
-    // Only start if we haven't started yet
-    if (hasStartedRef.current) {
-      return;
-    }
-
-    hasStartedRef.current = true;
 
     // Reset state
-    setCurrentMessageIndex(0);
-    setCurrentCharIndex(0);
+    currentIndexRef.current = 0;
+    charIndexRef.current = 0;
     setDisplayedText('');
 
-         // Start typing
-     const typeNextCharacter = () => {
-       // Get current state values to avoid stale closure
-       setCurrentMessageIndex(prevMessageIndex => {
-         setCurrentCharIndex(prevCharIndex => {
-           const message = messages[prevMessageIndex];
-           
-           if (!message) {
-             // No more messages
-             if (intervalRef.current) {
-               clearInterval(intervalRef.current);
-               intervalRef.current = null;
-             }
-             onComplete?.();
-             return prevCharIndex;
-           }
+    const typeNextCharacter = () => {
+      const currentMessage = messages[currentIndexRef.current];
+      
+      if (charIndexRef.current < currentMessage.length) {
+        // Type next character
+        const newText = currentMessage.slice(0, charIndexRef.current + 1);
+        setDisplayedText(newText);
+        
+        // Strategic haptics: only on key moments for premium feel
+        // Haptic on every 3rd character and at word boundaries for impact
+        if (charIndexRef.current % 3 === 0 || 
+            currentMessage[charIndexRef.current] === ' ' || 
+            currentMessage[charIndexRef.current] === '\n') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        
+        charIndexRef.current++;
+      } else {
+        // Message complete, pause before moving to next
+        if (currentIndexRef.current < messages.length - 1) {
+          // Clear current interval
+          clearInterval(intervalRef.current!);
+          
+          // Strong haptic when message completes
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          
+          // Pause for 1.2 seconds between messages (slightly shorter for premium feel)
+          setTimeout(() => {
+            currentIndexRef.current++;
+            charIndexRef.current = 0;
+            setDisplayedText('');
+            
+            // Restart typing for next message
+            intervalRef.current = setInterval(typeNextCharacter, speed);
+          }, 1200); // 1.2 second pause
+        } else {
+          // All messages complete
+          clearInterval(intervalRef.current!);
+          // Final completion haptic
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          onComplete?.();
+        }
+      }
+    };
 
-           if (prevCharIndex < message.length) {
-             // Type next character
-             const newText = message.slice(0, prevCharIndex + 1);
-             setDisplayedText(newText);
-             
-             // Vibrate on every character
-             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-             
-             return prevCharIndex + 1;
-                       } else {
-              // Message complete, pause interval and move to next
-              if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-              }
-              
-                             // Check if this is the last message
-               if (prevMessageIndex === messages.length - 1) {
-                 // Last message complete, defer onComplete to avoid setState during render
-                 setTimeout(() => {
-                   onComplete?.();
-                 }, 0);
-                 return 0;
-               }
-              
-              setTimeout(() => {
-                setCurrentCharIndex(0);
-                setDisplayedText('');
-                setCurrentMessageIndex(prev => prev + 1);
-                
-                // Restart interval for next message
-                intervalRef.current = setInterval(typeNextCharacter, speed);
-              }, 1000);
-              return 0;
-            }
-         });
-         return prevMessageIndex;
-       });
-     };
-
-    // Start interval
+    // Start typing
     intervalRef.current = setInterval(typeNextCharacter, speed);
 
-    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [isVisible]);
+  }, [isVisible, speed]); // Added speed to dependencies
 
-     return (
-     <View style={styles.typewriterContainer}>
-       <Text style={styles.warningText}>
-         {displayedText}
-       </Text>
-     </View>
-   );
+  return (
+    <View style={styles.typewriterContainer}>
+      <Text style={styles.warningText}>
+        {displayedText}
+      </Text>
+    </View>
+  );
 };
 
 const PanicModal: React.FC = () => {
@@ -269,13 +245,13 @@ const PanicModal: React.FC = () => {
         <View style={styles.warningContainer}>
           {showTypewriter ? (
             <TypewriterText 
-              key="typewriter-text"
+              key={`typewriter-${isPanicModalVisible}`}
               messages={[
                 "STOP\nYOU MADE A\nPROMISE TO\nYOURSELF.",
                 "IS THE SHORT\nRELIEF WORTH\nTHE SHAME?",
                 "YOU CAN DO THIS,\nYOU ARE NOT\nALONE."
               ]}
-                             speed={15} // Fast 15ms per character for snappy premium feel
+              speed={12} // Fast premium typing like QUITTR app for smooth, professional feel
               onComplete={handleTypewriterComplete}
               isVisible={showTypewriter}
             />

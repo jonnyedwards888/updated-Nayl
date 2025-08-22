@@ -61,10 +61,27 @@ function AppContent() {
   const { isPanicModalVisible } = usePanicModal();
   const { isMeditationActive } = useMeditation();
   
+  // State to track if we're on an onboarding screen
+  const [isOnboardingScreen, setIsOnboardingScreen] = useState(false);
+  
   // Removed problematic Image.prefetch that was causing URL request handler errors
   
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onStateChange={(state) => {
+        // Check if current route is an onboarding screen
+        if (state?.routes && state.index !== undefined) {
+          const currentRoute = state.routes[state.index];
+          if (currentRoute?.state?.routes && currentRoute.state.index !== undefined) {
+            const currentStackRoute = currentRoute.state.routes[currentRoute.state.index];
+            const isOnboarding = currentStackRoute?.name && 
+              ['OnboardingQuestionnaire', 'OnboardingTest', 'OnboardingFlow'].includes(currentStackRoute.name);
+            
+            setIsOnboardingScreen(isOnboarding || false);
+          }
+        }
+      }}
+    >
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -76,7 +93,7 @@ function AppContent() {
             height: 80,
             paddingBottom: 6, // Reduced from 10 to move content higher
             paddingTop: 6, // Reduced from 10 to move content higher
-            display: (isPanicModalVisible || isMeditationActive) ? 'none' : 'flex', // Hide tab bar when panic modal is visible or during meditation
+            display: (isPanicModalVisible || isMeditationActive || isOnboardingScreen) ? 'none' : 'flex', // Hide tab bar when panic modal is visible, during meditation, or on onboarding screens
             
             // Remove all shadows and borders
             shadowColor: 'transparent',
@@ -169,7 +186,6 @@ function AppContent() {
           name="Home" 
           component={HomeStack}
           options={{
-            tabBarStyle: { display: 'none' }, // Hide tab bar for Home tab (contains onboarding screens)
             tabBarIcon: ({ focused, color }) => (
               <View style={{
                 padding: 8,

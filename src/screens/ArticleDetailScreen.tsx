@@ -240,23 +240,7 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = ({ navigation, r
       marginBottom: SPACING.xl,
       marginTop: SPACING.lg,
     },
-    articleNumberContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: SPACING.md,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    articleNumber: {
-      ...TYPOGRAPHY.displayLarge,
-      color: colors.primaryText,
-      fontSize: 32,
-      fontWeight: '700',
-    },
+
     articleTitle: {
       ...TYPOGRAPHY.headingLarge,
       color: colors.primaryText,
@@ -701,9 +685,6 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = ({ navigation, r
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Article Header */}
         <View style={styles.articleHeader}>
-          <View style={styles.articleNumberContainer}>
-            <Text style={styles.articleNumber}>1</Text>
-          </View>
           <Text style={styles.articleTitle}>{currentArticle.title}</Text>
         </View>
 

@@ -208,6 +208,7 @@ const ArticlesScreen: React.FC = () => {
     content: {
       flex: 1,
       paddingHorizontal: SPACING.lg,
+      paddingTop: 120, // Add proper top padding to account for header
     },
     section: {
       marginBottom: SPACING.xl,
@@ -263,28 +264,10 @@ const ArticlesScreen: React.FC = () => {
       justifyContent: 'space-between',
       position: 'relative',
     },
-    articleNumber: {
-      position: 'absolute',
-      top: SPACING.sm,
-      left: SPACING.sm,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    articleNumberText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
+
     articleContent: {
       flex: 1,
       justifyContent: 'center',
-      paddingTop: SPACING.xl,
     },
     articleTitle: {
       ...TYPOGRAPHY.bodyMedium,
@@ -377,7 +360,7 @@ const ArticlesScreen: React.FC = () => {
       {/* Header */}
       <View style={[styles.header, { top: insets.top + 20 }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Articles</Text>
         <View style={styles.headerSpacer} />
@@ -400,33 +383,30 @@ const ArticlesScreen: React.FC = () => {
             contentContainerStyle={styles.articlesRow}
             style={styles.articlesScrollView}
           >
-            {/* Article 1: The Psychology Behind Nail Biting */}
-            <TouchableOpacity 
-              style={styles.articleCard}
-              onPress={() => handleArticlePress('nail-biting-psychology')}
-            >
-              <LinearGradient
-                colors={['rgba(139, 92, 246, 0.8)', 'rgba(168, 85, 247, 0.6)', 'rgba(147, 51, 234, 0.7)']}
-                style={styles.articleGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>1</Text>
-                </View>
-                <View style={styles.articleContent}>
-                  <Text style={styles.articleTitle}>
-                    The Psychology Behind Nail Biting
-                  </Text>
-                  <Text style={styles.articleSubtitle}>
-                    Understanding the hidden disorder and its mental health connections
-                  </Text>
-                </View>
-                <View style={styles.articleIcon}>
-                  <Ionicons name="book-outline" size={20} color="#FFFFFF" />
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+                         {/* Article 1: The Psychology Behind Nail Biting */}
+             <TouchableOpacity 
+               style={styles.articleCard}
+               onPress={() => handleArticlePress('nail-biting-psychology')}
+             >
+               <LinearGradient
+                 colors={['rgba(139, 92, 246, 0.8)', 'rgba(168, 85, 247, 0.6)', 'rgba(147, 51, 234, 0.7)']}
+                 style={styles.articleGradient}
+                 start={{ x: 0, y: 0 }}
+                 end={{ x: 1, y: 1 }}
+               >
+                 <View style={styles.articleContent}>
+                   <Text style={styles.articleTitle}>
+                     The Psychology Behind Nail Biting
+                   </Text>
+                   <Text style={styles.articleSubtitle}>
+                     Understanding the hidden disorder and its mental health connections
+                   </Text>
+                 </View>
+                 <View style={styles.articleIcon}>
+                   <Ionicons name="book-outline" size={20} color="#FFFFFF" />
+                 </View>
+               </LinearGradient>
+             </TouchableOpacity>
 
             {/* Placeholder for future articles */}
             <View style={styles.placeholderCard}>
@@ -453,33 +433,30 @@ const ArticlesScreen: React.FC = () => {
             contentContainerStyle={styles.articlesRow}
             style={styles.articlesScrollView}
           >
-            {/* Article 1: Tiny Bites, Big Risks */}
-            <TouchableOpacity 
-              style={styles.articleCard}
-              onPress={() => handleArticlePress('tiny-bites-big-risks')}
-            >
-              <LinearGradient
-                colors={['rgba(239, 68, 68, 0.7)', 'rgba(220, 38, 38, 0.5)', 'rgba(185, 28, 28, 0.6)']}
-                style={styles.articleGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>1</Text>
-                </View>
-                <View style={styles.articleContent}>
-                  <Text style={styles.articleTitle}>
-                    Tiny Bites, Big Risks
-                  </Text>
-                  <Text style={styles.articleSubtitle}>
-                    Germs, infections, and bloodstream concerns from nail biting
-                  </Text>
-                </View>
-                <View style={styles.articleIcon}>
-                  <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+                         {/* Article 1: Tiny Bites, Big Risks */}
+             <TouchableOpacity 
+               style={styles.articleCard}
+               onPress={() => handleArticlePress('tiny-bites-big-risks')}
+             >
+               <LinearGradient
+                 colors={['rgba(239, 68, 68, 0.7)', 'rgba(220, 38, 38, 0.5)', 'rgba(185, 28, 28, 0.6)']}
+                 style={styles.articleGradient}
+                 start={{ x: 0, y: 0 }}
+                 end={{ x: 1, y: 1 }}
+               >
+                 <View style={styles.articleContent}>
+                   <Text style={styles.articleTitle}>
+                     Tiny Bites, Big Risks
+                   </Text>
+                   <Text style={styles.articleSubtitle}>
+                     Germs, infections, and bloodstream concerns from nail biting
+                   </Text>
+                 </View>
+                 <View style={styles.articleIcon}>
+                   <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
+                 </View>
+               </LinearGradient>
+             </TouchableOpacity>
 
             {/* Article 2: Teeth and Jaws Aren't Safe Either */}
             <TouchableOpacity 
@@ -492,9 +469,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>2</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Teeth and Jaws Aren't Safe Either
@@ -520,9 +494,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>3</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Skin and Scars—A Lasting Impression
@@ -548,9 +519,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>4</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Self-Esteem and Social Snags
@@ -593,9 +561,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>1</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Cleaner Hands, Sharper Health
@@ -621,9 +586,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>2</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Stronger Smile Ahead
@@ -649,9 +611,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>3</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Hands That Feel Confident Again
@@ -677,9 +636,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>4</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Calmer Mind, Healthier Coping
@@ -722,9 +678,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>1</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Trim, File, and Distract
@@ -750,9 +703,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>2</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Bitter Defender & Pretty Armor
@@ -778,9 +728,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>3</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Mindful Awareness
@@ -806,9 +753,6 @@ const ArticlesScreen: React.FC = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={styles.articleNumber}>
-                  <Text style={styles.articleNumberText}>4</Text>
-                </View>
                 <View style={styles.articleContent}>
                   <Text style={styles.articleTitle}>
                     Rewards & Routine

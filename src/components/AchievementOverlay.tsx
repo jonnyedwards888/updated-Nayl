@@ -9,7 +9,7 @@ import {
   Image,
   Easing,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import { useTheme } from '../context/ThemeContext';
 import { Achievement } from '../context/AchievementContext';
 import { BlurView } from 'expo-blur';
@@ -335,30 +335,6 @@ const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
         <Animated.View style={containerStyle()}>
           {/* Premium achievement card with enhanced glassmorphism */}
           <Animated.View style={cardStyle()}>
-            {/* Achievement header with perfectly centered title/day count and right-positioned trophy */}
-            <View style={styles.achievementHeader}>
-              {/* Centered title and day count */}
-              <View style={styles.titleContainer}>
-                <Text style={styles.achievementTitle}>
-                  {achievement.title}
-                </Text>
-                <Text style={styles.achievementDayCount}>
-                  {achievement.maxProgress}/{achievement.maxProgress} days
-                </Text>
-              </View>
-              
-              {/* Trophy icon positioned to the right */}
-              <View style={styles.headerTrophyContainer}>
-                <View style={styles.headerTrophyGlowContainer}>
-                  <Image 
-                    source={require('../../assets/cooler-trophy-icon.webp')} 
-                    style={styles.headerTrophyIcon}
-                    resizeMode="contain"
-                  />
-                </View>
-              </View>
-            </View>
-            
             {/* Achievement icon - BOLD and CENTERED with ENHANCED ARCANE GLOW */}
             <View style={styles.achievementIconContainer}>
               {achievement.iconSource ? (
@@ -376,6 +352,30 @@ const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
                   </Text>
                 </View>
               )}
+            </View>
+            
+            {/* Achievement header with centered title/day count and trophy below */}
+            <View style={styles.achievementHeader}>
+              {/* Centered title and day count */}
+              <View style={styles.titleContainer}>
+                <Text style={styles.achievementTitle}>
+                  {achievement.title}
+                </Text>
+                <Text style={styles.achievementDayCount}>
+                  {achievement.maxProgress}/{achievement.maxProgress} days
+                </Text>
+              </View>
+              
+              {/* Trophy icon positioned below the title */}
+              <View style={styles.headerTrophyContainer}>
+                <View style={styles.headerTrophyGlowContainer}>
+                  <Image 
+                    source={require('../../assets/cooler-trophy-icon.webp')} 
+                    style={styles.headerTrophyIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
             </View>
             
             {/* Achievement description with premium typography */}
@@ -465,16 +465,6 @@ const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
                     Continue
                   </Text>
                 </LinearGradient>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={handleClose}
-                activeOpacity={0.7}
-              >
-                <View style={styles.closeButtonInner}>
-                  <Ionicons name="close" size={20} color={colors.primaryText} />
-                </View>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -571,36 +561,43 @@ const styles = StyleSheet.create({
     // Better vertical spacing for visual balance
   },
   iconGlowContainer: {
-    // Simple container for achievement icons - no glow gradients
+    // Minimal container for achievement icons - completely transparent
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   emojiIconContainer: {
-    // Simple container for emoji icons - no glow gradients
+    // Minimal container for emoji icons - completely transparent
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   achievementIcon: {
-    width: 180, // Reduced from 280 for more subtle effect
-    height: 180,
+    width: 200, // Increased from 180 for slightly bigger effect
+    height: 200,
     backgroundColor: 'transparent',
     // NO circular styling - let the icon shine directly
     borderWidth: 0,
     borderRadius: 0,
-    // Simple, natural shadow for premium feel
-    shadowColor: ACHIEVEMENT_COLORS.arcaneGlow.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
+    // No shadow - completely floating
+    shadowOpacity: 0,
+    elevation: 0,
     zIndex: 10,
   },
   emojiIcon: {
-    fontSize: 140, // Reduced from 200 for more subtle effect
+    fontSize: 160, // Increased from 140 for slightly bigger effect
     textAlign: 'center',
-    lineHeight: 180, // Adjusted to match smaller container
+    lineHeight: 200, // Adjusted to match bigger container
     // Enhanced text shadow for emoji icons
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 4 },
@@ -623,16 +620,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   achievementHeader: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center', // Center the main content
     marginBottom: ACHIEVEMENT_SPACING.titleMargin,
     // Better spacing and alignment for centered layout
     paddingHorizontal: ACHIEVEMENT_SPACING.textContainerPadding,
     gap: ACHIEVEMENT_SPACING.elementGap,
-    // Better balance for centered title and right trophy
-    flexWrap: 'nowrap',
-    position: 'relative', // For absolute positioning of trophy
+    // Better balance for centered title and trophy below
+    position: 'relative', // For positioning of trophy
   },
   trophyContainer: {
     alignItems: 'center',
@@ -701,14 +697,12 @@ const styles = StyleSheet.create({
     color: '#F8FAFC',
   },
   buttonContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: ACHIEVEMENT_SPACING.buttonMargin,
-    gap: ACHIEVEMENT_SPACING.elementGap,
     // Enhanced container styling with better spacing
     paddingHorizontal: ACHIEVEMENT_SPACING.textContainerPadding,
-    // Better horizontal spacing for button balance
+    // Better horizontal spacing for centered button
     paddingVertical: ACHIEVEMENT_SPACING.compactGap,
   },
   continueButton: {
@@ -728,41 +722,12 @@ const styles = StyleSheet.create({
   continueButtonText: {
     ...ACHIEVEMENT_TYPOGRAPHY.buttonText,
   },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    // Enhanced glassmorphic styling
-    backgroundColor: ACHIEVEMENT_COLORS.closeButtonBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Enhanced premium shadows
-    ...ACHIEVEMENT_SHADOWS.closeButton,
-    // Enhanced borders
-    borderWidth: 1.5,
-    borderColor: ACHIEVEMENT_COLORS.closeButtonBorder,
-  },
-  closeButtonInner: {
-    // Inner container for close button
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Subtle inner shadow
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+
   headerTrophyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    // Position trophy absolutely on the right side
-    position: 'absolute',
-    right: ACHIEVEMENT_SPACING.textContainerPadding,
+    // Position trophy below the title
+    marginTop: ACHIEVEMENT_SPACING.compactGap,
     // Fixed width to maintain consistent positioning
     width: 60,
   },
@@ -793,8 +758,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     // Center the title and day count perfectly
     textAlign: 'center',
-    // Ensure it's centered in the available space
-    flex: 1,
   },
 });
 
