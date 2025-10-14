@@ -9,12 +9,14 @@ interface ProfileHeaderProps {
   size?: 'small' | 'medium' | 'large';
   onPress?: () => void;
   navigation?: any;
+  showName?: boolean;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
   size = 'medium',
   onPress,
-  navigation
+  navigation,
+  showName = false
 }) => {
   const themeResult = useThemeGuaranteed();
   const colors = themeResult?.colors;
@@ -41,6 +43,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   }
 
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string>('Your Name');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -52,6 +55,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           profile_name: profileData.profile_name
         });
         setProfilePictureUrl(profileData.profile_picture_url || null);
+        setProfileName(profileData.profile_name || 'Your Name');
       } catch (error) {
         console.error('Error loading profile picture:', error);
         setProfilePictureUrl(null);
@@ -85,36 +89,46 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     );
   }
 
-  if (profilePictureUrl) {
-    // Show user's profile picture
-    return (
-      <TouchableOpacity 
-        style={[styles.container, sizeStyles]} 
-        onPress={onPress || (() => navigation?.navigate('Profile'))}
-        activeOpacity={0.8}
-      >
+  const renderProfileContent = () => {
+    if (profilePictureUrl) {
+      // Show user's profile picture
+      return (
         <Image 
           source={{ uri: profilePictureUrl }} 
           style={[styles.profileImage, sizeStyles]}
           resizeMode="cover"
         />
-      </TouchableOpacity>
-    );
-  }
+      );
+    }
+    
+    // Fall back to basic logo
+    return <BrandLogo size={size} />;
+  };
 
-  // Fall back to basic logo
   return (
     <TouchableOpacity 
-      style={[styles.container, sizeStyles]} 
+      style={styles.wrapper} 
       onPress={onPress || (() => navigation?.navigate('Profile'))}
       activeOpacity={0.8}
     >
-      <BrandLogo size={size} />
+      <View style={[styles.container, sizeStyles]}>
+        {renderProfileContent()}
+      </View>
+      {showName && (
+        <Text style={styles.profileName} numberOfLines={1}>
+          {profileName}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   container: {
     position: 'relative',
     alignItems: 'center',
@@ -135,7 +149,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     opacity: 0.3,
   },
-
+  profileName: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    maxWidth: 120,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
 });
 
 export default ProfileHeader;

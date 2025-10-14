@@ -664,7 +664,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         {/* Header */}
         <View style={styles.header}>
-                          <ProfileHeader size="medium" navigation={navigation} />
+                          <ProfileHeader size="medium" navigation={navigation} showName={true} />
           <View style={styles.headerIcons}>
             <TouchableOpacity 
               style={styles.streakContainer}

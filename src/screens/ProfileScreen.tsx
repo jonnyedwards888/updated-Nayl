@@ -342,11 +342,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               width: 32,
               height: 32,
               borderRadius: 16,
-              backgroundColor: 'rgba(147, 51, 234, 0.9)',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 2,
-              borderColor: 'rgba(147, 51, 234, 0.3)',
+              borderWidth: 1.5,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 4,
             }}>
               <Ionicons name="camera" size={16} color="#FFFFFF" />
             </View>
