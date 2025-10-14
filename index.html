@@ -3,7 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nayl App</title>
+    <title>Nayl - Transform Your Nail Biting Habits</title>
+    
+    <!-- Meta descriptions for better SEO and understanding -->
+    <meta name="description" content="Nayl is a premium habit transformation app that helps you break free from nail biting through personalized coaching, progress tracking, and psychological support. Start your journey to healthier nails and increased confidence today.">
+    <meta name="keywords" content="nail biting, habit breaking, self improvement, mental health, confidence, wellness, habit tracker, personal development">
+    <meta name="author" content="Nayl Team">
+    
+    <!-- Open Graph meta tags for social sharing -->
+    <meta property="og:title" content="Nayl - Transform Your Nail Biting Habits">
+    <meta property="og:description" content="Break free from nail biting with personalized coaching, progress tracking, and psychological support. Transform your habits and boost your confidence.">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nayl - Transform Your Nail Biting Habits">
+    <meta name="twitter:description" content="Break free from nail biting with personalized coaching, progress tracking, and psychological support.">
     
     <!-- Inter Font Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,6 +87,78 @@
     </style>
 </head>
 <body>
+    <!-- Loading message with app description -->
+    <div id="loading-message" style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1000;
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        background-color: rgba(0, 0, 0, 0.9);
+        padding: 2rem;
+        border-radius: 16px;
+        max-width: 400px;
+        display: none;
+    ">
+        <h1 style="margin: 0 0 1rem 0; font-size: 2rem; font-weight: 700;">Nayl</h1>
+        <p style="margin: 0 0 1.5rem 0; font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+            Transform your nail biting habits with personalized coaching, progress tracking, and psychological support.
+        </p>
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        ">
+            <span style="
+                background: linear-gradient(45deg, #C1FF72, #10B981);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 0.9rem;
+            ">🚀 Habit Breaking</span>
+            <span style="
+                background: linear-gradient(45deg, #8B5CF6, #EC4899);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 0.9rem;
+            ">🧠 Psychology</span>
+        </div>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.7;">
+            Loading your transformation journey...
+        </p>
+    </div>
+    
     <div id="root"></div>
+    
+    <script>
+        // Show loading message if app takes time to load
+        setTimeout(() => {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage && !document.getElementById('root').children.length) {
+                loadingMessage.style.display = 'block';
+            }
+        }, 2000);
+        
+        // Hide loading message when app loads
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    const loadingMessage = document.getElementById('loading-message');
+                    if (loadingMessage) {
+                        loadingMessage.style.display = 'none';
+                    }
+                    observer.disconnect();
+                }
+            });
+        });
+        
+        observer.observe(document.getElementById('root'), { childList: true });
+    </script>
 </body>
 </html> 
