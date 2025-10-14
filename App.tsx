@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
+import { LinearGradient } from 'expo-linear-gradient';
 import { PerformanceMeasureView } from '@shopify/react-native-performance';
 
 // Import contexts
@@ -30,6 +31,7 @@ import LearningScreen from './src/screens/LearningScreen';
 import OnboardingQuestionnaireScreen from './src/screens/OnboardingQuestionnaireScreen';
 import EditStreakScreen from './src/screens/EditStreakScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import NailProgressScreen from './src/screens/NailProgressScreen';
 
 // Import centralized stack navigators
 import { HomeStack, ProfileStack, LibraryStack } from './src/navigation/StackNavigator';
@@ -106,22 +108,32 @@ function AppContent() {
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
           },
-          // Custom footer background
+          // Custom footer background - Premium Sweatcoin-style
           tabBarBackground: () => (
-            <View style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 80,
-              backgroundColor: colors.footerBackground,
-              // Add subtle shadow for depth
-              shadowColor: colors.glassShadow,
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 4,
-            }} />
+            <LinearGradient
+              colors={[
+                'rgba(20, 24, 38, 0.75)',  // Darker top
+                'rgba(15, 18, 28, 0.85)',  // Slightly lighter bottom
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                // Premium shadow
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: -4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 8,
+                // Subtle top border for depth
+                borderTopWidth: 0.5,
+                borderTopColor: 'rgba(255, 255, 255, 0.06)',
+              }}
+            />
           ),
           tabBarActiveTintColor: colors.iconActivePrimary,
           tabBarInactiveTintColor: colors.iconInactivePrimary,
@@ -187,18 +199,7 @@ function AppContent() {
           component={HomeStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <View style={{
-                padding: 8,
-                borderRadius: 12,
-                // Active tab background indicator - subtle green glow
-                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
-                // Icon glow effect for active state
-                shadowColor: focused ? colors.iconGlow : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: focused ? 0.4 : 0,
-                shadowRadius: 6,
-                elevation: focused ? 2 : 0,
-              }}>
+              <View>
                 <House 
                   size={TAB_ICON_SIZE} 
                   // Icon colors: white for active, muted gray for inactive
@@ -212,24 +213,13 @@ function AppContent() {
           }}
         />
         
-        {/* Achievements Tab - Trophy icon */}
+        {/* Progress Tab - Camera icon for nail progress */}
         <Tab.Screen 
-          name="Achievements" 
-          component={AchievementsScreen}
+          name="Progress" 
+          component={NailProgressScreen}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <View style={{
-                padding: 8,
-                borderRadius: 12,
-                // Active tab background indicator - subtle green glow
-                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
-                // Icon glow effect for active state
-                shadowColor: focused ? colors.iconGlow : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: focused ? 0.4 : 0,
-                shadowRadius: 6,
-                elevation: focused ? 2 : 0,
-              }}>
+              <View>
                 <Trophy 
                   size={TAB_ICON_SIZE} 
                   // Icon colors: white for active, muted gray for inactive
@@ -278,18 +268,7 @@ function AppContent() {
           component={LibraryStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <View style={{
-                padding: 8,
-                borderRadius: 12,
-                // Active tab background indicator - subtle green glow
-                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
-                // Icon glow effect for active state
-                shadowColor: focused ? colors.iconGlow : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: focused ? 0.4 : 0,
-                shadowRadius: 6,
-                elevation: focused ? 2 : 0,
-              }}>
+              <View>
                 <Book 
                   size={TAB_ICON_SIZE} 
                   // Icon colors: white for active, muted gray for inactive
@@ -309,18 +288,7 @@ function AppContent() {
           component={ProfileStack}
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <View style={{
-                padding: 8,
-                borderRadius: 12,
-                // Active tab background indicator - subtle green glow
-                backgroundColor: focused ? 'rgba(193, 255, 114, 0.05)' : 'transparent',
-                // Icon glow effect for active state
-                shadowColor: focused ? colors.iconGlow : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: focused ? 0.4 : 0,
-                shadowRadius: 6,
-                elevation: focused ? 2 : 0,
-              }}>
+              <View>
                 <User 
                   size={TAB_ICON_SIZE} 
                   // Icon colors: white for active, muted gray for inactive

@@ -734,13 +734,12 @@ const styles = StyleSheet.create({
   },
 
   categoryLabel: {
-    ...body,
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
     letterSpacing: 0.8,
   },
 });

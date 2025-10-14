@@ -119,7 +119,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   
   // Reset modal state
   const [isResetModalVisible, setIsResetModalVisible] = useState(false);
-  
   // Color picker modal state
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -127,10 +126,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   
   // Star positions for randomized animation
   const [starPositions, setStarPositions] = useState(() => 
-    Array.from({ length: 100 }, () => ({
+    Array.from({ length: 40 }, () => ({
       x: Math.random() * width * 2,
       y: Math.random() * height,
-      opacity: Math.random() * 0.9 + 0.15, // Enhanced opacity range: 0.15 to 1.05 for more variation
+      opacity: Math.random() * 0.5 + 0.1, // Subtle opacity range: 0.1 to 0.5 for depth without distraction
       speed: Math.random() * 0.15 + 0.03,
       directionX: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
       directionY: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
@@ -678,11 +677,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               />
               <Text style={styles.streakText}>{consecutiveDays}</Text>
             </TouchableOpacity>
-            <Image 
-              source={require('../../assets/nice-leaf-icon.webp')} 
-              style={styles.leafIcon}
-              resizeMode="contain"
-            />
+            <TouchableOpacity 
+              onPress={() => {
+                // Navigate to Library tab, then to Achievements screen
+                navigation.navigate('Library', {
+                  screen: 'Achievements'
+                });
+              }}
+              activeOpacity={0.7}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="trophy-outline" size={22} color="#FFD700" />
+            </TouchableOpacity>
           </View>
         </View>
 

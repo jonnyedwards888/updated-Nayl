@@ -19,6 +19,7 @@ import OnboardingTestScreen from '../screens/OnboardingTestScreen';
 import OnboardingFlowTestScreen from '../screens/OnboardingFlowTestScreen';
 import EditStreakScreen from '../screens/EditStreakScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import NailProgressScreen from '../screens/NailProgressScreen';
 
 const Stack = createStackNavigator();
 
@@ -70,6 +71,7 @@ export function ProfileStack() {
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="Reasons" component={ReasonsScreen} />
       <Stack.Screen name="TriggerHistory" component={TriggerHistoryScreen} />
+      <Stack.Screen name="NailProgress" component={NailProgressScreen} />
     </Stack.Navigator>
   );
 }
