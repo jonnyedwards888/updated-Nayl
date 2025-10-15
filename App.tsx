@@ -38,6 +38,7 @@ import { HomeStack, ProfileStack, LibraryStack } from './src/navigation/StackNav
 
 // Import components
 import { User, Book, House, Trophy, ChartBar } from 'phosphor-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Import constants
 import { COLORS } from './src/constants/theme';
@@ -108,12 +109,12 @@ function AppContent() {
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
           },
-          // Custom footer background - Premium Sweatcoin-style
+          // Custom footer background - Deep black with subtle gradient
           tabBarBackground: () => (
             <LinearGradient
               colors={[
-                'rgba(20, 24, 38, 0.75)',  // Darker top
-                'rgba(15, 18, 28, 0.85)',  // Slightly lighter bottom
+                'rgba(8, 10, 15, 0.95)',   // Deep black top
+                'rgba(5, 7, 12, 0.98)',    // Even darker bottom
               ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
@@ -126,12 +127,12 @@ function AppContent() {
                 // Premium shadow
                 shadowColor: '#000000',
                 shadowOffset: { width: 0, height: -4 },
-                shadowOpacity: 0.15,
+                shadowOpacity: 0.3,
                 shadowRadius: 12,
                 elevation: 8,
                 // Subtle top border for depth
                 borderTopWidth: 0.5,
-                borderTopColor: 'rgba(255, 255, 255, 0.06)',
+                borderTopColor: 'rgba(255, 255, 255, 0.08)',
               }}
             />
           ),
@@ -220,13 +221,11 @@ function AppContent() {
           options={{
             tabBarIcon: ({ focused, color }) => (
               <View>
-                <Trophy 
+                <Ionicons 
+                  name="camera-outline"
                   size={TAB_ICON_SIZE} 
                   // Icon colors: white for active, muted gray for inactive
                   color={focused ? colors.iconActivePrimary : colors.iconInactivePrimary}
-                  // Secondary fill: green accent for active, dark gray for inactive
-                  secondaryColor={focused ? colors.iconActiveSecondary : colors.iconInactiveSecondary}
-                  weight="duotone"
                 />
               </View>
             ),

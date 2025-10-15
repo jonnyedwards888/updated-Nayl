@@ -154,7 +154,15 @@ const ReasonsScreen: React.FC<ReasonsScreenProps> = ({ navigation }) => {
       marginBottom: SPACING.sm,
       borderWidth: 1,
       borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle border
-      ...SHADOWS.card,
+      // Premium depth with inset + outer shadow
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+      // Subtle top border for depth
+      borderTopWidth: 1.5,
+      borderTopColor: 'rgba(255, 255, 255, 0.15)',
     },
     reasonContent: {
       flex: 1,

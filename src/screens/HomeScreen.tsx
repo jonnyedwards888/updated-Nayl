@@ -125,15 +125,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [resetAnimationSeconds, setResetAnimationSeconds] = useState(0);
   
   // Star positions for randomized animation
-  const [starPositions, setStarPositions] = useState(() => 
-    Array.from({ length: 40 }, () => ({
+  const [starPositions, setStarPositions] = useState(() =>
+    Array.from({ length: 60 }, () => ({
       x: Math.random() * width * 2,
       y: Math.random() * height,
-      opacity: Math.random() * 0.5 + 0.1, // Subtle opacity range: 0.1 to 0.5 for depth without distraction
+      opacity: Math.random() * 0.6 + 0.15, // Slightly more visible: 0.15 to 0.75
       speed: Math.random() * 0.15 + 0.03,
-      directionX: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
-      directionY: (Math.random() - 0.5) * 1.5, // Slightly more controlled movement
-      size: Math.random() * 2.2 + 0.5, // Varied star sizes for depth
+      directionX: (Math.random() - 0.5) * 1.5,
+      directionY: (Math.random() - 0.5) * 1.5,
+      size: Math.random() * 2.5 + 0.6, // Slightly larger stars for better visibility
     }))
   );
 
@@ -686,15 +686,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               }}
               activeOpacity={0.7}
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                width: 40,
+                height: 40,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="trophy-outline" size={22} color="#FFD700" />
+              <Image 
+                source={require('../../assets/trophy-icon.webp')} 
+                style={{ width: 32, height: 32 }}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -825,7 +827,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.actionButtonsContainer}>
           <CircularActionButton
             icon="create-outline"
-            label="Edit Streak"
+            label="Streak"
             onPress={handleEditStreak}
             size="small"
           />

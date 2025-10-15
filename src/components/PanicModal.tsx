@@ -49,7 +49,7 @@ const TypewriterText: React.FC<{
   isVisible: boolean;
 }> = ({ 
   messages, 
-  speed = 12, // Fast premium typing like QUITTR app
+  speed = 4, // Faster for punchy videogame feel (was 12)
   onComplete,
   isVisible
 }) => {
@@ -74,18 +74,19 @@ const TypewriterText: React.FC<{
 
     const typeNextCharacter = () => {
       const currentMessage = messages[currentIndexRef.current];
-      
       if (charIndexRef.current < currentMessage.length) {
         // Type next character
         const newText = currentMessage.slice(0, charIndexRef.current + 1);
         setDisplayedText(newText);
         
-        // Strategic haptics: only on key moments for premium feel
-        // Haptic on every 3rd character and at word boundaries for impact
-        if (charIndexRef.current % 3 === 0 || 
-            currentMessage[charIndexRef.current] === ' ' || 
-            currentMessage[charIndexRef.current] === '\n') {
+        // Punchy videogame-style haptics: vibrate on key moments for impact
+        const currentChar = currentMessage[charIndexRef.current];
+        // Haptic on letters (not spaces) for videogame text feel + word boundaries
+        if (currentChar !== ' ' && charIndexRef.current % 2 === 0) {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        } else if (currentChar === '\n') {
+          // Stronger haptic on newlines
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
         
         charIndexRef.current++;
@@ -137,7 +138,7 @@ const TypewriterText: React.FC<{
   );
 };
 
-const PanicModal: React.FC = () => {
+const PanicModal: React.FC<{ navigation?: any }> = ({ navigation }) => {
   const { isPanicModalVisible, setIsPanicModalVisible } = usePanicModal();
   const [showTypewriter, setShowTypewriter] = useState(false);
   const [typewriterComplete, setTypewriterComplete] = useState(false);
@@ -251,7 +252,7 @@ const PanicModal: React.FC = () => {
                 "IS THE SHORT\nRELIEF WORTH\nTHE SHAME?",
                 "YOU CAN DO THIS,\nYOU ARE NOT\nALONE."
               ]}
-              speed={12} // Fast premium typing like QUITTR app for smooth, professional feel
+              speed={8} // Punchy videogame-style typing with haptic feedback
               onComplete={handleTypewriterComplete}
               isVisible={showTypewriter}
             />
@@ -299,6 +300,27 @@ const PanicModal: React.FC = () => {
             </View>
           ))}
         </View>
+
+        {/* View Your Reasons Button */}
+        {navigation && (
+          <TouchableOpacity 
+            style={styles.viewReasonsButton}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setIsPanicModalVisible(false);
+              navigation.navigate('Reasons');
+            }}
+          >
+            <LinearGradient
+              colors={['rgba(147, 51, 234, 0.25)', 'rgba(147, 51, 234, 0.15)']}
+              style={styles.viewReasonsGradient}
+            >
+              <Ionicons name="heart" size={20} color="#9333EA" />
+              <Text style={styles.viewReasonsText}>View Your Reasons for Changing</Text>
+              <Ionicons name="chevron-forward" size={16} color="#9333EA" />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* Trigger Warning - show immediately */}
         <View style={styles.triggerWarningContainer}>
@@ -469,6 +491,35 @@ const styles = StyleSheet.create({
     minHeight: 32,
   },
 
+  viewReasonsButton: {
+    borderRadius: SPACING.md,
+    overflow: 'hidden',
+    marginBottom: SPACING.lg,
+    shadowColor: '#9333EA',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  viewReasonsGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(147, 51, 234, 0.3)',
+    borderRadius: SPACING.md,
+  },
+  viewReasonsText: {
+    ...body,
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
   triggerWarningContainer: {
     alignItems: 'center',
     marginBottom: SPACING.xxl,

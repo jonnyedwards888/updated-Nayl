@@ -208,25 +208,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         }}
       />
       
-      {/* Starfield Animation - Like HomeScreen */}
+      {/* Starfield Animation - Enhanced */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}>
-        {Array.from({ length: 40 }, (_, index) => (
+        {Array.from({ length: 60 }, (_, index) => (
           <View
             key={index}
             style={{
               position: 'absolute',
               left: Math.random() * 400,
               top: Math.random() * 800,
-              width: Math.random() * 2.2 + 0.5,
-              height: Math.random() * 2.2 + 0.5,
-              backgroundColor: 'rgba(255, 255, 255, 0.6)',
-              borderRadius: (Math.random() * 2.2 + 0.5) / 2,
-              opacity: Math.random() * 0.4 + 0.1,
+              width: Math.random() * 2.5 + 0.6,
+              height: Math.random() * 2.5 + 0.6,
+              backgroundColor: 'rgba(200, 200, 200, 0.7)',
+              borderRadius: (Math.random() * 2.5 + 0.6) / 2,
+              opacity: Math.random() * 0.6 + 0.15,
               shadowColor: 'rgba(255, 255, 255, 0.3)',
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.4,
-              shadowRadius: 1,
-              elevation: 1,
+              shadowOpacity: 0.5,
+              shadowRadius: 1.5,
+              elevation: 2,
             }}
           />
         ))}
@@ -677,61 +677,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               </View>
             )}
           </View>
-        </View>
-
-        {/* Nail Progress Gallery Card - NEW FEATURE! */}
-        <View style={{ marginBottom: SPACING.lg, borderRadius: SPACING.lg, overflow: 'hidden' }}>
-          <TouchableOpacity onPress={() => navigation.navigate('NailProgress' as never)}>
-            <LinearGradient
-              colors={['#C1FF72', '#9FE855', '#7DD138']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: SPACING.lg }}
-            >
-              {/* Premium noise texture overlay */}
-              <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                opacity: 1,
-              }} />
-              
-              <View style={{ flexDirection: 'row', alignItems: 'center', zIndex: 1 }}>
-                <View style={{ 
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: 'rgba(0, 0, 0, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: SPACING.md,
-                  borderWidth: 2,
-                  borderColor: 'rgba(0, 0, 0, 0.2)',
-                }}>
-                  <Ionicons name="camera" size={32} color="#000000" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ 
-                    fontSize: 18,
-                    color: '#000000',
-                    fontWeight: '700',
-                    marginBottom: SPACING.xs,
-                  }}>Nail Progress Gallery 📸</Text>
-                  <Text style={{ 
-                    fontSize: 14,
-                    color: 'rgba(0, 0, 0, 0.7)',
-                    fontWeight: '500',
-                  }}>
-                    Track your healing journey with photos
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={24} color="#000000" />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
 
         {/* Reasons for Changing Card */}

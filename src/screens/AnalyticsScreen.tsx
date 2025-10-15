@@ -407,9 +407,9 @@ const styles = StyleSheet.create({
   progressPercentage: {
     ...TYPOGRAPHY.displayLarge,
     marginBottom: SPACING.xs,
-    textShadowColor: 'rgba(193, 255, 114, 0.6)',
+    textShadowColor: 'rgba(193, 255, 114, 0.15)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
+    textShadowRadius: 6,
   },
   progressSubtext: {
     ...TYPOGRAPHY.bodyMedium,

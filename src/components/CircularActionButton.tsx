@@ -57,17 +57,16 @@ export default function CircularActionButton({
   
   const [isPressed, setIsPressed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
   // Animation values
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const rotationAnim = React.useRef(new Animated.Value(0)).current;
   const glowAnim = React.useRef(new Animated.Value(0)).current;
 
-  // Size configurations
+  // Size configurations - increased icon sizes to fill frames better
   const sizeConfig = {
-    small: { buttonSize: 56, iconSize: 16, fontSize: 14 },
-    medium: { buttonSize: 56, iconSize: 24, fontSize: 12 },
-    large: { buttonSize: 72, iconSize: 32, fontSize: 14 },
+    small: { buttonSize: 56, iconSize: 22, fontSize: 14 },
+    medium: { buttonSize: 56, iconSize: 28, fontSize: 12 },
+    large: { buttonSize: 72, iconSize: 38, fontSize: 14 },
   };
 
   const { buttonSize, iconSize, fontSize } = sizeConfig[size];
@@ -366,7 +365,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   buttonContainer: {
-    alignItems: 'center',
   },
   touchable: {
     borderRadius: 999,
@@ -375,17 +373,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    // Premium depth: outer shadow + subtle inset effect
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
+    // Subtle top border for inset depth
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.3)',
   },
   glow: {
     position: 'absolute',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
     elevation: 8,
@@ -424,7 +427,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
-    minWidth: 80,
-    maxWidth: 100,
+    width: 70,
+    alignSelf: 'center',
   },
 }); 
