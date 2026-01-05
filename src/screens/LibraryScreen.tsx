@@ -188,26 +188,36 @@ const LibraryScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {/* Four Main Buttons */}
+        {/* Four Main Buttons - Premium Glassmorphic Design */}
         <View style={styles.categoriesContainer}>
-                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Articles'))}>
-              <LinearGradient
-                colors={[
-                  'rgb(240, 38, 38)',    //rgb(247, 54, 54) - Bright red
-                  'rgb(202, 18, 18)',    //rgb(204, 22, 22) - Medium red
-                  'rgb(193, 28, 28)',    // #991B1B - Dark red
-                  'rgb(115, 19, 19)'     // #7F1D1D - Deep red
-                ]}
-                locations={[0, 0.3, 0.7, 1]}
-                style={styles.categoryButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-              {/* Premium texture overlay */}
-              <View style={styles.buttonTextureOverlay} />
+          {/* Articles Button */}
+          <TouchableOpacity 
+            style={styles.categoryButton} 
+            onPress={() => handleButtonPress(() => navigation.navigate('Articles'))}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(220, 38, 38, 0.85)',
+                'rgba(185, 28, 28, 0.9)',
+                'rgba(153, 27, 27, 0.95)',
+              ]}
+              locations={[0, 0.5, 1]}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Glassmorphic overlay */}
+              <View style={styles.glassOverlay} />
               
-              {/* Subtle inner highlight */}
-              <View style={styles.buttonInnerHighlight} />
+              {/* Top highlight for depth */}
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0)']}
+                style={styles.topHighlight}
+              />
+              
+              {/* Bottom shadow for depth */}
+              <View style={styles.bottomShadow} />
               
               <View style={styles.categoryButtonContent}>
                 <Text style={styles.categoryLabel}>Articles</Text>
@@ -215,49 +225,69 @@ const LibraryScreen: React.FC = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Achievements'))}>
-                <LinearGradient
-                  colors={[
-                    'rgba(30, 64, 175, 1)',   // #1E40AF - Deep blue
-                    'rgba(59, 130, 246, 1)',   // #3B82F6 - Medium blue
-                    'rgba(96, 165, 250, 1)',   // #60A5FA - Light blue
-                    'rgba(147, 197, 253, 1)'   // #93C5FD - Pale blue
-                  ]}
-                  locations={[0, 0.3, 0.7, 1]}
-                  style={styles.categoryButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                {/* Premium texture overlay */}
-                <View style={styles.buttonTextureOverlay} />
-                
-                {/* Subtle inner highlight */}
-                <View style={styles.buttonInnerHighlight} />
-                
-                <View style={styles.categoryButtonContent}>
-                  <Text style={styles.categoryLabel}>Leaderboard</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-
-                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Learning'))}>
-              <LinearGradient
-                colors={[
-                  'rgb(0, 113, 77)',     // #059669 - Deep green
-                  'rgb(0, 116, 77)',     // #10B981 - Medium green
-                  'rgb(24, 147, 102)',     // #34D399 - Light green
-                  'rgb(58, 177, 130)'     // #6EE7B7 - Pale green
-                ]}
-                locations={[0, 0.3, 0.7, 1]}
-                style={styles.categoryButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-              {/* Premium texture overlay */}
-              <View style={styles.buttonTextureOverlay} />
+          {/* Leaderboard Button */}
+          <TouchableOpacity 
+            style={styles.categoryButton} 
+            onPress={() => handleButtonPress(() => navigation.navigate('Achievements'))}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(59, 130, 246, 0.85)',
+                'rgba(37, 99, 235, 0.9)',
+                'rgba(29, 78, 216, 0.95)',
+              ]}
+              locations={[0, 0.5, 1]}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Glassmorphic overlay */}
+              <View style={styles.glassOverlay} />
               
-              {/* Subtle inner highlight */}
-              <View style={styles.buttonInnerHighlight} />
+              {/* Top highlight for depth */}
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0)']}
+                style={styles.topHighlight}
+              />
+              
+              {/* Bottom shadow for depth */}
+              <View style={styles.bottomShadow} />
+              
+              <View style={styles.categoryButtonContent}>
+                <Text style={styles.categoryLabel}>Leaderboard</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Learn Button */}
+          <TouchableOpacity 
+            style={styles.categoryButton} 
+            onPress={() => handleButtonPress(() => navigation.navigate('Learning'))}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(16, 185, 129, 0.85)',
+                'rgba(5, 150, 105, 0.9)',
+                'rgba(4, 120, 87, 0.95)',
+              ]}
+              locations={[0, 0.5, 1]}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Glassmorphic overlay */}
+              <View style={styles.glassOverlay} />
+              
+              {/* Top highlight for depth */}
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0)']}
+                style={styles.topHighlight}
+              />
+              
+              {/* Bottom shadow for depth */}
+              <View style={styles.bottomShadow} />
               
               <View style={styles.categoryButtonContent}>
                 <Text style={styles.categoryLabel}>Learn</Text>
@@ -265,30 +295,40 @@ const LibraryScreen: React.FC = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-                                                                                           <TouchableOpacity style={styles.categoryButton} onPress={() => handleButtonPress(() => navigation.navigate('Meditation'))}>
-                <LinearGradient
-                  colors={[
-                    'rgba(217, 119, 6, 1)',    // #D97706 - Deep orange
-                    'rgba(245, 158, 11, 1)',    // #F59E0B - Medium orange
-                    'rgba(251, 191, 36, 1)',    // #FBBF24 - Light orange
-                    'rgba(252, 211, 77, 1)'     // #FCD34D - Pale orange
-                  ]}
-                  locations={[0, 0.3, 0.7, 1]}
-                  style={styles.categoryButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                {/* Premium texture overlay */}
-                <View style={styles.buttonTextureOverlay} />
-                
-                {/* Subtle inner highlight */}
-                <View style={styles.buttonInnerHighlight} />
-                
-                <View style={styles.categoryButtonContent}>
-                  <Text style={styles.categoryLabel}>Wellness</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+          {/* Wellness Button */}
+          <TouchableOpacity 
+            style={styles.categoryButton} 
+            onPress={() => handleButtonPress(() => navigation.navigate('Meditation'))}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(245, 158, 11, 0.85)',
+                'rgba(217, 119, 6, 0.9)',
+                'rgba(180, 83, 9, 0.95)',
+              ]}
+              locations={[0, 0.5, 1]}
+              style={styles.categoryButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Glassmorphic overlay */}
+              <View style={styles.glassOverlay} />
+              
+              {/* Top highlight for depth */}
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0)']}
+                style={styles.topHighlight}
+              />
+              
+              {/* Bottom shadow for depth */}
+              <View style={styles.bottomShadow} />
+              
+              <View style={styles.categoryButtonContent}>
+                <Text style={styles.categoryLabel}>Wellness</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* Content Cards */}
@@ -658,88 +698,76 @@ const styles = StyleSheet.create({
   categoryButton: {
     width: '48%',
     marginBottom: SPACING.lg,
-    borderRadius: SPACING.lg,
+    borderRadius: 20,
     overflow: 'hidden',
+    // Enhanced shadow for premium depth
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
+    // Subtle border for definition
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   categoryButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.md + 4,
-    paddingHorizontal: SPACING.lg + 8,
-    borderRadius: SPACING.lg,
+    paddingVertical: 22,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 20,
     position: 'relative',
+    overflow: 'hidden',
   },
-  buttonTextureOverlay: {
+  // Glassmorphic frosted glass effect
+  glassOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: SPACING.lg,
-    opacity: 0.9,
     zIndex: 1,
-    // Enhanced micro-texture effect
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.6,
-    shadowRadius: 3,
   },
-  buttonInnerHighlight: {
+  // Top highlight for 3D depth
+  topHighlight: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    borderRadius: SPACING.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    height: '45%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     zIndex: 2,
-    // Enhanced inner shadow for depth
-    shadowColor: 'rgba(0, 0, 0, 0.4)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 6,
   },
-  buttonTextureLayer: {
+  // Bottom shadow for inset effect
+  bottomShadow: {
     position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: SPACING.lg + 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
-    zIndex: -1,
-    // Subtle outer glow
-    shadowColor: 'rgba(0, 0, 0, 0.5)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 8,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '20%',
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    zIndex: 2,
   },
   categoryButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 3,
   },
-
   categoryLabel: {
     ...body,
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    letterSpacing: 0.5,
+    fontSize: 17,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    letterSpacing: 0.3,
   },
 });
 

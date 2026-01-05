@@ -148,10 +148,10 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
         {/* Header Section */}
         <Animated.View style={[styles.headerSection, headerStyle]}>
           <Text style={styles.mainHeadline}>
-            Invest in yourself
+            Unlock Nayl Pro
           </Text>
           <Text style={styles.subHeadline}>
-            Unlock Nayl Pro
+            Invest in yourself
           </Text>
         </Animated.View>
 
@@ -165,7 +165,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
             />
           </View>
           <Text style={styles.iconSubtext}>
-            Premium features to accelerate your journey
+            Premium tools for lasting change
           </Text>
         </Animated.View>
 
@@ -182,7 +182,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 <Text style={styles.featureCardTitle}>Panic Button</Text>
               </View>
               <Text style={styles.featureCardDescription}>
-                Instant access to support and guidance when you feel tempted to bite your nails.
+                Instant support when tempted
               </Text>
               <View style={styles.featureCardStatus}>
                 <Text style={styles.featureCardStatusText}>UNLOCKED</Text>
@@ -196,7 +196,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 <Text style={styles.featureCardTitle}>Achievement System</Text>
               </View>
               <Text style={styles.featureCardDescription}>
-                Unlock badges and rewards as you reach important milestones in your journey.
+                Celebrate milestones with badges
               </Text>
               <View style={styles.featureCardStatus}>
                 <Text style={styles.featureCardStatusText}>UNLOCKED</Text>
@@ -210,7 +210,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 <Text style={styles.featureCardTitle}>Progress Analytics</Text>
               </View>
               <Text style={styles.featureCardDescription}>
-                Track your daily progress with visual charts and detailed insights.
+                Visual insights into your progress
               </Text>
               <View style={styles.featureCardStatus}>
                 <Text style={styles.featureCardStatusText}>UNLOCKED</Text>
@@ -224,7 +224,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 <Text style={styles.featureCardTitle}>Meditation Library</Text>
               </View>
               <Text style={styles.featureCardDescription}>
-                Access guided sessions and relaxation sounds to manage stress and triggers.
+                Guided sessions for stress relief
               </Text>
               <View style={styles.featureCardStatus}>
                 <Text style={styles.featureCardStatusText}>UNLOCKED</Text>
@@ -248,8 +248,8 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 <Text style={styles.purchaseOptionPrice}>£2.99/week</Text>
               </View>
 
-              {/* Yearly Option */}
-              <View style={[styles.purchaseOption, styles.purchaseOptionHighlighted]}>
+              {/* Yearly Option - Highlighted */}
+              <View style={[styles.purchaseOption, styles.purchaseOptionHighlighted, styles.purchaseOptionSelected]}>
                 <Text style={styles.purchaseOptionTitle}>Yearly</Text>
                 <Text style={styles.purchaseOptionPrice}>£33.99/year</Text>
                 <Text style={styles.purchaseOptionPrice}>£0.65/week</Text>
@@ -275,7 +275,7 @@ const NaylProUpgradeScreen: React.FC<NaylProUpgradeScreenProps> = ({
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.buttonText}>Start rewiring now</Text>
+                <Text style={styles.buttonText}>Begin your journey</Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -314,28 +314,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   mainHeadline: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '700',
-    color: '#E2E8F0',
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 50,
-    letterSpacing: 0.3,
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 6,
+    lineHeight: 44,
+    letterSpacing: 0.5,
+    marginBottom: 12,
     zIndex: 10,
   },
   subHeadline: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#94A3B8',
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
-    lineHeight: 50,
+    lineHeight: 28,
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
     zIndex: 10,
   },
   iconSection: {
@@ -448,9 +442,19 @@ const styles = StyleSheet.create({
     borderColor: '#7C3AED',
     borderWidth: 2,
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  purchaseOptionSelected: {
+    borderColor: '#8B5CF6',
+    borderWidth: 3,
+    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
     elevation: 12,
   },
   popularTag: {
